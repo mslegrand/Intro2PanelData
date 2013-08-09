@@ -1,0 +1,267 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+\chapter{Instrument Variables}
+
+\section{Bias Arrises From Endogenity of X}
+In the the previous sections we made the the assumption that the error term was uncorrelated with the explanatory variables. One way to visualize this is
+
+\begin{center}
+\begin{tikzpicture}
+  \node (X) {$X$};
+  \node (E) [below of=X] {$\epsilon$};
+  \node (Y) [right of=X] {$Y$};
+  \draw[->] (X) to node {} (Y);
+  %\draw[->, dashed] (X) to node [swap] {} (E);
+  \draw[->] (E) to node [swap] {} (Y);
+\end{tikzpicture}
+\end{center}
+Here the arrows illustrate Y dependence on $X$ and $\epsilon$.
+
+Now the assumption that $X$ and $\epsilon$ are uncorrelate may not in practice be true, i.e. we may find ourselves in the situation where
+\begin{equation}
+  \rho(X_{i,t},\epsilon_{i,t}) \neq 0
+\end{equation}
+We can illustrate the correlation between $X$ abd $\epsilon$ by connection them with a line as follows:
+%\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+  \node (X) {$X$};
+  \node (E) [below of=X] {$\epsilon$};
+  \node (Y) [right of=X] {$Y$};
+  \draw[->] (X) to node {} (Y);
+  \draw[-, dashed] (E) to node [swap] {} (X);
+  \draw[->] (E) to node [swap] {} (Y);
+\end{tikzpicture}
+%\end{figure}
+\end{center}
+
+In this case, when $X$ and $\epsilon$ are correlated the  OLS estimator becomes {\it biased}.
+This is easily illustrated by considering the following simple example:
+Let 
+\begin{equation}
+Y_i= \beta X_i + \epsilon
+\end{equation} 
+Now since, $\hat \beta = [X^TX]^{-1} x^T Y$ we see
+\begin{equation}
+ \hat \beta \rightarrow 
+ \frac{E(XY)}{E(XX)} =
+ \frac{E(X(\beta X+\epsilon))}{E(X^2)}=
+ %\beta \frac{E(X^2)}{E(X^2)} + \frac{E(X\epsilon)}{E(X^2)} = 
+ \beta + \frac{E(X\epsilon)}{E(X^2)}
+\end{equation}
+Now recall
+\begin{equation}
+\sigma_X^2=E(X^2)-\mu_X^2
+\end{equation}
+and 
+\begin{equation}
+\rho_{X\epsilon}=\frac{E(X \epsilon) -\mu_X \mu_\epsilon}{\sigma_X \sigma_\epsilon}
+\end{equation}
+So 
+\begin{equation}
+\frac{E(X\epsilon)}{E(X^2)}=
+\frac{\sigma_X \sigma_\epsilon \rho_{x \epsilon} + \mu_X \mu_\epsilon}
+{\sigma_X^2 + \sigma_\epsilon^2}
+\end{equation}
+Now since $\mu_\epsilon=0$ the last term drops out so we get
+\begin{equation}
+\hat \beta \rightarrow
+\beta + \frac{\sigma_X \sigma_\epsilon \rho_{x \epsilon} }
+{\sigma_X^2 + \sigma_\epsilon^2}
+\end{equation}
+Now since $\sigma_X \neq 0$ 
+\footnote{there is more that one X value} and $\sigma_\epsilon \neq 0$ 
+we see that the necessary and sufficient condition for $\hat \beta \rightarrow \beta$ is 
+that $\rho_{x \epsilon} \neq 0$.
+
+\section{Two Stage Least Squares}
+Thus, when $X$ and $\epsilon$ are correlated, we are tempted find a work around in order to avoid bias. 
+
+One such work around is to have another variable, say $Z$, which is correlated with $X$ but not correlated with $\epsilon$. Such a variable $Z$ is called an {\it Instrument Variable}. 
+
+We may visualize this as
+
+\begin{center}
+\begin{tikzpicture}
+  \node (X) {$X$};
+  \node (E) [below of=X] {$\epsilon$};
+  \node (Z) [left of=X]{$Z$};
+  \node (Y) [right of=X] {$Y$};
+  \draw[->] (X) to node {} (Y);
+  \draw[-] (Z) to node {} (X);
+  \draw[-, dashed] (E) to node [swap] {} (X);
+  \draw[->] (E) to node [swap] {} (Y);
+\end{tikzpicture}
+\end{center}
+
+An instrument variable can allow us to avoid bias by replacing the role of $X$ in $Y=X \beta + \epsilon$ by a proxy $\tilde X$. 
+More precisely, first regress on
+\begin{equation}
+X=Z \alpha +\eta
+\end{equation} 
+ to obtain $\hat \alpha$
+ Next compute the predicted values 
+ \begin{equation}
+ \tilde X = Z \hat \alpha
+ \end{equation} 
+ Finally compute $\hat \beta$ by regressing on 
+ \begin{equation}
+ Y = \tilde X \beta + \epsilon
+ \end{equation}
+Since $Z$ and $\epsilon$ are uncorrelated, $\tilde X$ and $\epsilon$ are also uncorrelated. 
+
+\section{Combining the 2 Stage Regression Calculations}
+
+In the previous section we used instrument variables to perform a two stage regression. Here will we examine the details and combine to provide a single equivalent calculation.
+
+Now the OLS solution of $X=Z \alpha + \eta$ is given by
+\begin{equation}
+\hat \alpha = [Z^TZ]^{-1}Z^TX
+\end{equation}
+so $\tilde X$ is given by
+\begin{equation}
+\tilde X = Z\hat \alpha = Z[Z^TZ]^{-1}Z^TX
+\end{equation}
+For notational convenience, define P by
+%set $P=Z[Z^TZ]^{-1}Z^T$. Note P is symmetric ($P=P^T$) and a projection ($P^2=P$)
+\begin{equation}
+P=Z[Z^TZ]^{-1}Z^T
+\end{equation}
+Then 
+\begin{equation}
+\tilde X = PX
+\end{equation}
+and $\hat \beta$ is given by
+\begin{equation}
+\hat \beta = [(PX)^T(PX)]^{-1}(PX)^TY
+\end{equation}
+So
+\begin{equation}
+\hat \beta = [X^TP^TPX]^{-1}X^TP^TY
+\end{equation}
+This can be simplifed further by noting that P is symmetric,
+\footnote{ This follows since $P^T= 
+\left[ Z[Z^TZ]^{-1}Z^T \right]^T =
+[Z^T]^T [[Z^TZ]^{-1}]^T [Z]^T =
+Z [[Z^TZ]^{T}]^{-1} Z^T = 
+Z [Z^TZ]^{-1} Z^T.$ Thus $P^T =
+P$, so $P$ is symmetric
+}
+to get
+\begin{equation}
+\hat \beta = [X^TP^2X]^{-1}X^TPY
+\end{equation}
+Furthermore, we note P is a projection,
+\footnote{ To see P is a projection, note
+$P^2=
+\left[ Z[Z^TZ]^{-1}Z^T \right]\left[ Z[Z^TZ]^{-1}Z^T \right]=
+Z[Z^TZ]^{-1}Z^T Z[Z^TZ]^{-1}Z^T=
+Z[Z^TZ]^{-1}Z^T =P$
+}
+thus
+\begin{equation} \label{eq:IV.general}
+\hat \beta = [X^TPX]^{-1}X^TPY
+\end{equation}
+Now eq~\ref{eq:IV.general} is the general form for the solution using instrument variables. 
+
+
+In the event that the number of instruments is equal to the number of explanatory variables, the term $Z^T X$ becomes a  square matrix. In this case, it makes sense to speak of $[Z^TX]^{-1}$ and to recast eq~\ref{eq:IV.general} as follows:
+% \begin{equation}
+% \begin{array}{lcl}
+% \hat \beta & = & [X^TPX]^{-1} X^T P Y \\
+%             & = &[X^TPX]^{-1} X^T P X Z^T (XZ^T)^{-1}Y \\
+%            & = & Z^T (XZ^T)^{-1} Y \\
+%            & = & (Z^T X)^{-1} Z^T X Z^T (X Z^T)^{-1} Y \\
+%            & = & (Z^T X)^{-1} Z^T  Y          
+% \end{array}
+% \end{equation}
+Insert $X Z^T (XZ^T)^{-1}$ in front of the Y of eq~\ref{eq:IV.general} to get
+\begin{equation}
+\hat \beta 
+ = [X^TPX]^{-1} X^T P X Z^T (XZ^T)^{-1}Y 
+\end{equation}
+Since the product of  $[X^TPX]^{-1}$ and  $[X^T P X Z^T]$ is the identity,
+\begin{equation}
+\hat \beta 
+ = Z^T (XZ^T)^{-1} Y
+\end{equation}
+Now premultiply $Z^T (XZ^T)^{-1} Y$ by the identity $(Z^T X)^{-1} Z^T X$ to get
+\begin{equation}
+\hat \beta 
+ = (Z^T X)^{-1} Z^T X Z^T (X Z^T)^{-1} Y
+\end{equation}
+Reducing the $X Z^T (X Z^T)^{-1}$ term we finally get
+\begin{equation}
+\hat \beta 
+ = (Z^T X)^{-1} Z^T  Y
+\end{equation}
+
+
+
+
+
+\chapter{Guidelines for Model Selection}
+% \usepackage[utf8]{inputenc}
+% \usepackage{tikz}
+% 
+% \definecolor{cffd5d5}{RGB}{255,213,213}
+% \definecolor{cb1cd87}{RGB}{177,205,135}
+% \definecolor{c7ddb57}{RGB}{125,219,87}
+% \definecolor{cff6600}{RGB}{255,102,0}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+To better understand the interplay between the model and our tests consider fig~\ref{fig:PoolFERE}
+\vfill
+\pagebreak
+
+\usetikzlibrary{shapes,arrows,shadows}
+\begin{figure}
+ \centering
+\framebox
+{\begin{tikzpicture}[thick,scale=1.1, every node/.style={transform shape}]
+\tikzstyle{ModelN}=[draw, fill=green!20, text width=5em, 
+    text centered, minimum height=2.5em, rounded corners, drop shadow]
+\tikzstyle{TestN} = [ModelN,ellipse, text width=4em, fill=yellow!20, 
+    minimum height=2em, rounded corners, drop shadow]
+\tikzstyle{StartN} = [TestN,ellipse, text width=10em, fill=red!20, 
+    minimum height=6em, rounded corners, drop shadow]
+%{\begin{tikzpicture}[thick,scale=0.4105, every node/.style={transform shape}]
+%\draw [brown] (current bounding box.south west) rectangle (current bounding box.north east);
+%\draw[gray,step=1] (-5,-5) grid (5, 6);
+\node [StartN] (unobs) at (0,5) {{\bf Unobserved Hetrogeneity}};
+\node [ModelN] (feM) at (-4,1){{\bf FE Model}};
+\node [ModelN] (reM) at (4,1){{\bf RE Model}};
+\node [ModelN] (plM) at (0,1){{\bf Pooled Model}};
+\node [TestN] (fTst) at (-2,-2){{\bf F-Test}};
+\node [TestN] (lmTst) at (2,-2){{\bf LMTest}};
+\node [TestN] (hausTst) at (0,-5){{\bf Hausman Test}};
+\draw[->] (unobs) -- (plM);
+\draw[->, draw=red!20, line width=2pt] (unobs) edge  node[sloped, above] {\bf \it Intercept}(feM); 
+\draw[->, draw=red!20, line width=2pt] (unobs) edge  node[sloped, above] {\bf \it Error}(reM); 
+\draw[->, draw=red!20, line width=2pt] (unobs) edge  node[ below] {\bf \it None}(plM);
+\draw[->, draw=black, line width=2pt] (feM) -- (fTst); 
+\draw[->, draw=black, line width=2pt] (reM) -- (lmTst); 
+\draw[->, draw=black, line width=2pt] (fTst) edge  node[sloped, above] {\bf $H_0$}(plM); 
+\draw[->, draw=black, line width=2pt] (lmTst) edge  node[sloped, above] {\bf $H_0$}(plM); 
+\draw[->, draw=black, line width=2pt] (fTst) edge  node[sloped, above] {\bf \it Reject $H_0$}(hausTst); 
+\draw[->, draw=black, line width=2pt] (lmTst) edge  node[sloped, above] {\bf \it Reject $H_0$}(hausTst); 
+\draw[->, draw=black, line width=2pt, bend left] (hausTst) edge  node[sloped, below] {\bf \it Reject $H_0$}(feM); 
+\draw[->, draw=black, line width=2pt, bend right] (hausTst) edge  node[sloped, below] {\bf  $H_0$}(reM); 
+\end{tikzpicture}
+}
+\label{fig:PoolFERE}\caption{Pooled, Fixed Effects, Random Effects at a Glance}
+\end{figure}
+
+%\vspace
+%\vfill
+
+\pagebreak

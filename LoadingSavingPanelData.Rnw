@@ -1,0 +1,254 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+\chapter{Loading/Saving Panel Data}
+The simples example of reading and writing is that of a plain text file.
+
+\section{Reading and Writing csv Panel Data Files}
+A csv file is a plain text file that uses comma's to seperate fields, with each data entry on a seperate line. 
+For example, it may look like 
+ \begin{verbatim}
+"year","country","y","x1","x2"
+2010,"A",50.3429206006974,44.062630017288,48.0893397703767
+2011,"A",114.641023960132,48.4834742499515,2.6708984747529
+2012,"A",-98.9665030501783,13.5961908847094,156.396966427565
+2010,"B",-36.9658716348,34.5664419233799,116.402363497764
+2011,"B",155.295395891704,67.5066618714482,0.21973354741931
+2012,"B",99.3606661572028,50.4071495495737,31.8780469708145
+2010,"C",-150.150092165442,13.8569770613685,188.616755511612
+2011,"C",115.937315194709,70.0987725518644,45.0018198695034
+2012,"C",-87.6802043890115,33.1616186769679,184.856367809698
+\end{verbatim}
+
+Then to read this file, we simply issue the {\it read.csv} command:
+
+<<readcsv>>=
+read.csv("./Data/country.csv")->df 
+head(df) 
+@
+As usual, we use the {\it head} command to display the first 6 lines
+
+To write the panel data back to a text file named {\it "temp.csv"} issue the {\it write.csv} command.
+<<writecsv>>=
+write.csv(df, "./Data/temp.csv", row.names=FALSE) 
+@
+
+{\bf Note:}{we set row.names=false to prevent writing the row names}.
+
+Both {\it read.csv} and {\it write.csv} are special cases of {\it write.table} from the package {\it Utils}.
+For greater detail issue the commands {\it help(read.table)} and {\it help(write.table)}
+
+\section{Foreign Reading and Writing}
+  Using the {\it foreign} package, we can read and write in many different formats: Stata, SAS, SPSS, Systat, ...
+  For example, we can load stata files as follows:
+<<label=stata,tidy.opts=list(width.cutoff=60, keep.blank.line=FALSE)>>=
+  library(foreign)
+  paneldata<-read.dta("http://dss.princeton.edu/training/Panel101.dta")
+  head(paneldata)
+@
+First the package foreign is imported using {\it library(foreign)} command. Then the panel is read in using the {\it read.dta} command. Finally we display the first 6 lines of the panel data using the {\it head(Panel)} command. To write back the stata file, we use the {\it write.dta} command. For more information, type {\it help(package=foreign)}
+
+\section{Reading EViews wf1 files}
+ Similarly eviews files can be loaded, but using a different package, {\it hexView}. 
+ For example:
+<<label=eviews>>=
+  library(hexView)
+  #download from "http://www.principlesofeconometrics.com/eviews/bond.wf1")
+  Panel<-readEViews("./Data/nls_panel.wf1")
+  head(Panel)
+@
+For more information type {\it help(hexView)}
+
+\section{Data from Multiple Sources}
+Sometimes our data comes from muliple sources and so to do our analysis, we may need to combine them. 
+This can be accomplished by {\it merging} the corresponding data.frames. For example: Consider the following pair of data sets:
+
+<<readc1>>=
+read.csv("./Data/panel1.csv")->panel1
+print(panel1) 
+@
+
+<<readc2>>=
+read.csv("./Data/panel2.csv")->panel2
+print(panel2) 
+@
+
+{\bf Note:} The countries and dates of panel1 and panel2 match, but the columns do not.
+
+What we want to do is to combine these into a single panel. This may be accomplished by the {\it merge} command as follows:
+<<panelM, tidy=TRUE>>=
+panelM<-merge(panel1,panel2,by=c("year","country"))
+print(panelM) 
+@
+
+We may still use {\it merge} when the year and country don't align, as shown in the next example.
+<<readc3>>=
+read.csv("./Data/panel3.csv")->panel3
+print(panel3) 
+@
+{\bf Note:} {\it Panel3} begins at 2011 and ends at 2013. Thus when merging, we get
+<<panelM2>>=
+panelM<-merge(panel1,panel3,by=c("year","country"))
+print(panelM) 
+@
+By default, the rows for 2010 and 2013 are omitted since {\it Panel1} is missing 2013 and {\it Panel3} is missing 2010.
+To have both rows included in our results, we simply add the options {\it all.x=TRUE} and {\it all.y=TRUE}
+<<panelM3, tidy=TRUE, tidy.opts=list(width.cutoff=60, keep.blank.line=FALSE)>>=
+panelM<-merge(panel1,panel3,by=c("year","country"), all.x=TRUE, all.y=TRUE)
+print(panelM) 
+@
+
+
+\section{Cleaning Data}
+Data is not always clean. For example, consider the following data:
+<<panelDirty>>=
+read.csv("./Data/pDirty.csv")->panelDirty
+print(panelDirty) 
+@
+One approach is to remove rows with NA's using {\it na.omit}:
+<<panelClean1>>=
+na.omit(panelDirty)->panelClean1
+print(panelClean1) 
+@
+If the {\it z2} column is not revelant to our calculations, we might first delete it by simply using $ panelDirty\$z2<-NULL$, before removing rows with NA's
+<<panelClean2>>=
+panelDirty$z2<-NULL
+na.omit(panelDirty)->panelClean2
+print(panelClean2) 
+@
+
+\section{Panel Data Simultions}
+Sometimes it is useful to generate some artificial panel data, to test our analysis algorithms. We can easily generate panel data in R using the built random number generators and a wonderful little function called {\it expand.grid}.
+<<panelGenerate1>>=
+country<-c("alpha","beta","gamma")
+years<-c(2008,2009,2011)
+panel<-expand.grid(country=country, year=years)
+n<-nrow(panel)
+panel$x<-rnorm(n, mean=10*(1:n), sd=3)
+panel$y<-panel$x*2+rnorm(n,mean=0,sd=2)
+@
+The result is
+<<>>=
+head(panel)
+@
+and can be saved using
+<<>>=
+write.csv(df,"./Data/simulation.csv", row.names=FALSE)
+@
+
+\section{The Shape of Data}
+
+<<echo=FALSE>>=
+make.panel.fat<-function(){
+  state<-c("dc","virginia","maryland")
+  years<-c(2008,2009,2011)
+  df<-expand.grid(state=state, year=years)
+  n<-nrow(df)
+  df$x<-rnorm(n, 10*(1:n), 3)
+  df$y<-df$x*2+rnorm(n,mean=0,sd=2)
+  library(reshape2)
+  data.long<-melt(df, id.vars=c("state","year"))
+  names(data.long)[3]<-"var"
+  dcast(data.long, state + var ~ year, value.var="value")->data.fat
+  data.fat
+}
+data.fat<-make.panel.fat()
+write.csv(data.fat,"./Data/fatPanel.csv", row.names=FALSE)
+@
+The data we have considered so far has consisted of rows
+of the form {\it country, year, x1, x2, ... ,y}. However sometimes our data is not in that form. For example, consider the data in table~\ref{table2}:
+<<results='asis', echo=FALSE>>=
+xtable(data.fat,caption="Panel Data",label="table2")
+@
+
+Here, each row represents a time series, that  columns are used to present data for different years. In order to transform this into a more usable format we transform it into the {\it long} data format, but first we read in the data.
+<<>>=
+fat.data<-read.csv("./Data/fatPanel.csv")
+head(fat.data)
+@
+Note: the extra X appearing in front of the year. This is because, by default, R converts the column names using the {\it make.names} function to {\it "valid"} names. To prevent this from occuring, we must set the 
+{\it check.names=F} option. 
+<<>>=
+fat.data<-read.csv("./Data/fatPanel.csv", check.names=F)
+head(fat.data)
+@
+
+Next we convert {\it fat.data} into the {\it "long data format"}. This is done using the {\it melt}
+function from the {\it reshape} package.
+
+<<>>=
+library("reshape2")
+melt(fat.data,id.vars=c("state","var"))->long.data
+head(long.data)
+@
+We rename the column for readability
+<<>>=
+names(long.data)[3]<-"year"
+head(long.data)
+@
+And finally we use {\it dcast} to reshape into our more familiar format.
+<<>>=
+panel.data<-dcast(long.data, state + year ~ var, value.var="value")
+panel.data
+@
+
+\section{Reading and Combining Single Year Files}
+
+% read.tables <- function(file.names, ...) {
+%     require(plyr)
+%     ldply(file.names, function(fn) data.frame(Filename=fn, read.csv(fn, ...)))
+% }
+% 
+% data <- read.tables(c("filename1.csv", "filename2.csv"))
+
+%Data can come in two formats wide and long. An example of wide format might be
+% years<-c("1926","1927,"1928")
+% years<-sapply(years, function(x)paste("Data/Yearly",x,".csv"))
+% country<-c("Aland","Bland","Cland")
+% llply(years,function(n)data.frame(country=country, x=runif(3,10,20), y=runif(3,20,30)))->dataSets
+% names(dataSets)<-years
+% sapply(years,function(yr){write.csv(dataSets[[yr]], file=yr, row.names=F)})
+ Occasionally, we are presented with a situation where each file represents the data for all individuals for a single given year. To show how we might handle this, we consider a simple example:
+ 
+In this example all files   located in a subdirectory called {\it Data/Yearly}. Furthermore, all file are of the {\it csv format} and have names of the form {\it "dddd.csv"} The files  are
+<<results='asis', echo=FALSE>>=
+file.1926<-read.csv("./Data/Yearly/1926.csv")
+xtable(file.1926,caption="Data/Yearly/1926.csv",label="table1926")
+@
+<<results='asis', echo=FALSE>>=
+file.1927<-read.csv("./Data/Yearly/1927.csv")
+xtable(file.1927,caption="Data/Yearly/1927.csv",label="table1927")
+@
+<<results='asis', echo=FALSE>>=
+file.1928<-read.csv("./Data/Yearly/1928.csv")
+xtable(file.1928,caption="Data/Yearly/1928.csv",label="table1928")
+@
+
+
+
+To see a listing we would normally type
+<<>>=
+dir("Data/Yearly")
+@
+Using this mechanism, we can collect all the files as a single R vector, called {\it files}
+<<>>=
+files<-dir("Data/Yearly")
+@
+The idea is for each file Name, {\it fName} in files we want to read the data.frame, {\it df} using
+{\it read.csv} and then combine them back into a single data.frame using some form of {\it plyr}. The only complication,are
+\begin{itemize}
+\item Before, recombining the data.frames back into a single data.frame we want to add a year-column containing the year corresponding to that file. So we need to extract the year from the name. That is what the function {\it toYear} does below.
+\item To read the file, we must include the path to file in addition to the file name. That is what the
+function {\it toPath } does.
+\end{itemize}
+Once this we have the two helper functions, all we need to do is to use {\it ldply}\footnote {The ld of ldply stands for apply to a list to produce a data.frame.} from the {\it plyr}
+package.
+
+The code is actually quite short!
+<<>>=
+library("plyr")
+files<-dir("Data/Yearly/")
+toYear<-function(fName){as.integer(substr(fName,1,4))}
+toPath<-function(fName){paste("Data/Yearly",fName,sep="/")}
+panel.data<-ldply(files, function(fName){read.csv(toPath(fName))->df; toYear(fName)->df$year; df })
+panel.data
+@

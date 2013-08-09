@@ -1,0 +1,76 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+
+\chapter{The Pooled Model} \label{Chapt:Pooled.Model}
+
+% R has an extensive {\it Stats} package, containing numerous methods and is well worth exploring. However, our modeling efforts will concentrate on linear models. To better understand these, we begin with  quick review of ordinarly linear regression
+
+The most restrictive model is the {\it pooled model}. It assumes constant coefficients and that $\delta_i=0$ and $\gamma_t=0$. Thus we have
+
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{equation} \label{Eqn:Pooled.Model}
+        \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t0)
+            {$Y_{i,t}$};
+        }
+     = 
+            \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t0_5)
+            {$\alpha$};
+        } +
+             \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t1)
+            {$ X^T_{i,t}$};
+        } 
+        \tikz[baseline]{
+            \node[fill=green!20,ellipse,anchor=base] (t1_5)
+            {$ \beta$};
+        } 
+        + 
+        \tikz[baseline]{
+            \node[fill=red!20,ellipse,anchor=base] (t4)
+            {$\epsilon_{i,t}$};
+        }
+\end{equation}
+\begin{itemize}
+    \item global constant
+        \tikz[na]\node [coordinate] (n0_5) {};
+    \item explanatory coeffcients
+        \tikz[na]\node [coordinate] (n1_5) {};
+    \item residual (idd over i,t)
+        \tikz[na]\node [coordinate] (n4) {};
+\end{itemize}
+
+% Now it's time to draw some edges between the global nodes. Note that we
+% have to apply the 'overlay' style.
+\begin{tikzpicture}[overlay]
+        \path[->] (n0_5) edge [bend right] (t0_5);
+        \path[->] (n1_5) edge [bend right] (t1_5);
+        \path[->] (n4) edge [out=0, in=-90] (t4);
+\end{tikzpicture}
+
+where, as in eqn~\ref{Eqn:General.Model}, 
+we assume:
+\begin{itemize}
+  \item The residual satisfies $\epsilon_{i,t}$ statisfies $E\left[\epsilon_{i,t}\right]=0$
+  \item $X_{i,t}$ is uncorreltated with $\epsilon_{i,t}$, that is $\rho(X_{i,t}, \epsilon_{i,t})=0$
+\end{itemize}
+
+
+
+In the preceding example, we did not have a time component, however we can still apply OLS by pooling all the observations together and then perform a least squares regression.  Again, the form for the general equation for pooled panel data becomes
+\begin{equation}
+y_{i,t}= \alpha + X^T_{i,t} \vec \beta + \epsilon_{i,t}
+\end{equation}
+
+
+We can solve this in exactly the same way as in the preceding section, or alternatively, we may fit and plot in a single step
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
+library(foreign)
+panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta")
+p <- ggplot(data = panelData, aes(x = x1, y = y)) 
+p <- p + geom_smooth(method = "lm", se=FALSE, color="red", formula = y ~ x) 
+p <- p + geom_point()
+p
+@
+

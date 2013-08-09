@@ -1,0 +1,277 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+
+\chapter{Fixed Effects Model} \label{Chapt:Fixed.Effects.Model}
+
+In the Fixed Effects Model may be obtained from the general model under the assumptions that $\gamma_t$ is zero and 
+$\delta_i$ is correlated with $X_{i,t}$.
+Setting $\alpha_i=\alpha + \delta_i$,
+we have
+
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{equation} \label{Eqn:FEModel}
+        \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t0)
+            {$Y_{i,t}$};
+        }
+     = 
+            \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t0_5)
+            {$\alpha_i$};
+        } +
+             \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t1)
+            {$ X^T_{i,t}$};
+        } 
+        \tikz[baseline]{
+            \node[fill=green!20,ellipse,anchor=base] (t1_5)
+            {$ \beta$};
+        } 
+        + 
+        \tikz[baseline]{
+            \node[fill=red!20,ellipse,anchor=base] (t4)
+            {$\epsilon_{i,t}$};
+        }
+\end{equation}
+\begin{itemize}
+    \item {Correlated: $\rho\left[\alpha_i , x_{i,t} \right] \neq 0$}
+        \tikz[na]\node [coordinate] (n0_5) {};
+    \item explanatory coeffcients
+        \tikz[na]\node [coordinate] (n1_5) {};
+    \item residual
+        \tikz[na]\node [coordinate] (n4) {};
+\end{itemize}
+
+% Now it's time to draw some edges between the global nodes. Note that we
+% have to apply the 'overlay' style.
+\begin{tikzpicture}[overlay]
+        \path[->] (n0_5) edge [bend right] (t0_5);
+        \path[->] (n1_5) edge [bend right] (t1_5);
+        \path[->] (n4) edge [out=0, in=-90] (t4);
+\end{tikzpicture}
+
+We may interpret each $\alpha_i$ as the intercept for that specific individual.
+%Here $\epsilon_{i,t}$ is assumed to be idd
+
+\begin{equation}
+  y_{i,t}= \alpha + x^T_{i,t}\beta + \epsilon_{i,t}
+\end{equation}
+
+
+
+% 
+% In chapter \ref{Chapt:Pooled.Model} we performed a linear regression of $ y \sim x1$ on the data {\it panel}. That is we assumed our model was of the form
+% \begin{equation}
+% y_{i,t}= \alpha + X^T_{i,t} \vec \beta + \epsilon_{i,t}
+% \end{equation}
+% 
+% This assumes that the intercept $\alpha$ is constant across all individuals. However in practice, this may not be true.
+% An obvious generalization is to incorporate a dependency of $\alpha$, that is
+% \begin{equation}
+% y_{i,t}= \alpha_i + X^T_{i,t} \vec \beta + \epsilon_{i,t}
+% \end{equation}
+In this chapter, we discuss two approaches to produce estimates of the model coefficients: {\it Dummy Variable Estimator} \S~\ref{Sec:LSDV}, and the {\it Within Estimator} \S~\ref{Sec:WithinEst}.
+
+
+\section{Dummy Variable Estimator (LSDV)} \label{Sec:LSDV}
+The Dummy Variable Estimator approach is to extend $X$ by introducing dummy variables for each individual i, indicating whether that individual belongs to that group. This approach works well only when the number of time observations per individual is much larger that the number of individuals in the panel.
+
+To illustrate this consider the following simple example:
+Suppose that our panel data is given by table~\ref{table:fe1}
+<<tabfe1, results='asis', echo=FALSE>>=
+df<-data.frame(country=c("A","A","B","B"),year=2009:2010, y=c(1,4,5,7), x=1:4)
+xtable(df,"panel data", label='table:fe1')
+@
+
+To find our solution, we begin by addin dummy variables $d1$, $d2$ to get table~\ref{table:fe2}
+<<results='asis', echo=FALSE>>=
+df.dummy<- data.frame(df,d1=c(1,1,0,0),d2=c(0,0,1,1))
+  #data.frame(year=2009:2010, y=c(1,4,5,7), x=1:4, d1=1:0, d2=0:1)
+xtable(df.dummy,"panel data with dummy variables", label='table:fe2')
+@
+
+Next we find the solution to
+\begin{equation}
+\hat \theta=argmin_\theta \| \vec Y - M \vec \theta\|
+\end{equation}
+where
+\begin{equation}
+\vec Y=\left| \begin{array}{c} 1 \\ 4 \\ 5 \\7 \end{array} \right|, \ 
+M=
+\left| \begin{array}{ccc} 1 & 1 & 0  \\ 2 & 1 & 0 \\ 3 & 0 & 1 \\ 4 & 0 & 1 \end{array} \right|, \ 
+\vec \theta=\left| \begin{array}{c} m \\ b_1 \\ b_2 \end{array} \right|
+\end{equation}
+
+To illustrate this example, consider the following R code:
+<<fe-1>>=
+df<-data.frame(country=c("A","A","B","B"),year=2009:2010, y=c(1,4,5,7), x=1:4)
+head(df)
+@
+Creating dummy variables we have
+<<fe-2>>=
+df$d1<-c(1,1,0,0)
+df$d2<-c(0,0,1,1)
+head(df)
+@
+Finally solving we have
+<<label=fe-3>>=
+fixed.dum<-lm(y~x+d1+d2-1, data=df)
+@
+{\bf Note:} The $-1$ in  $"fixed.dum \leftarrow lm(y \sim x+d1+d2-1, data=df)"$ is to tell the {\it lm} not to add a column of one's (which is the default when doing ordinary regression with a single intercept.)
+<<fe-4>>=
+summary(fixed.dum)
+@
+This is easily plotted as follows
+<<>>=
+yhat<-fixed.dum$fitted
+library(ggplot2)
+#plot fitted dummy
+p<-ggplot(df)
+p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
+p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
+p<- p + ggtitle("FIT USING DUMMY VARIABLES") +
+  theme(plot.title = element_text(lineheight=.8, face="bold", family="Times"))
+p
+@
+
+\subsection{Using Factors as Dummy variables}
+In practice, the dummary variables need not be insert, since we can use the country names as factors. We illustrate this in the following
+
+
+we use the previous panel data, {\it panel}. This process for the panel data {\it panel} is implemented as follows:
+<<fe-fit1>>=
+fixed.dum <-lm(y ~ x1 + factor(country) -1, data=panel)
+summary(fixed.dum)
+@
+
+
+To compare to the pooled ols we issue the command
+<<>>=
+ols <-lm(y ~ x1, data=panel)
+@
+and then plot using 
+<<>>=
+yhat<-fixed.dum$fitted
+library(ggplot2)
+#plot fitted dummy
+p<-ggplot(panel)
+p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_abline(intercept=ols$coefficients[1], slope=ols$coefficients[2], colour="red", size=2) 
+p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
+p<- p + ggtitle("Fit using Dummy Variables")
+p
+@
+
+Alternatively, we can show each in a seperate graph as follows:
+<<>>=
+panel$yhat<-yhat
+p <- ggplot(panel)
+p <- p + geom_point(aes(x=x1,y=y,group=country,colour=country) )
+p <- p + geom_abline(intercept=ols$coefficients[1], slope=ols$coefficients[2], colour="red") 
+p <- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country))
+p <- p + ggtitle("Fit using Dummy Variables")
+p <- p + facet_wrap(~country)
+p
+@
+
+\section{The Within Estimator (FE)} \label{Sec:WithinEst}
+The {\it Within Estimato}r is also known as the {\it Fixed Effects Estimator}, 
+and is mathematically equivalent to using the {\it Dummy Estimator}, but is computationally more efficient, thus is the perfered method.
+
+The {\it Within Estimator} estimates the fixed effects by first {\it demeaning} and then using ordinary least squares on the result.  That is, summing over $t$ for each $i$ we have
+\begin{equation}
+\sum_t y{i,t}=T \alpha +\sum_t X_{i,t}\beta + T\delta_{i} + \sum_t\epsilon_{i,t} 
+\end{equation}
+Dividing by T and subtracting from  equations we have
+\begin{equation} \label{eqn:withinEst}
+y_{i,t}-\bar y_i = (X_{i,t}-\bar X_i)^T + \epsilon_{i,t} - \bar \epsilon_i
+\end{equation}
+where
+$\bar y_i =\frac{1}{T}\sum_t y_{i,t}$,
+$\bar x_i =\frac{1}{T}\sum_t x_{i,t}$ and
+$\bar \epsilon_i =\frac{1}{T}\sum_t \epsilon_{i,t}$.
+The within estimator is ordinarly least squares estimation applied to equation~\ref{eqn:withinEst}
+
+
+
+To perform within estimation we use the {\it plm} package, as follows:
+<<out.width='.8\\textwidth'>>=
+library(foreign)
+panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+library(plm)
+fixed.within<-plm(y~x1, data=panelData, index=c("country","year"), model="within")
+summary(fixed.within)
+@
+
+We can also get the $\alpha_i$ by 
+<<>>=
+fixef(fixed.within)
+@
+
+To graph in the same as before we need to do a little work to created an analogous "fitted" function, which is called hat below.
+<<>>=
+hat<-function(x,i){
+  b<-fixef(fixed.within)
+  m<-fixed.within[[1]]
+  b[i]+m*x
+}
+@
+Then we apply hat to get yhat and proceed as before.
+<<>>=
+yhat<-hat(panelData$x1,panelData$country)
+library(ggplot2)
+panelData$yhat<-yhat
+p<-ggplot(panelData)
+p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
+p<- p + ggtitle("Fixed Using the Within Estimator")
+p
+@
+
+To place the ols on this graph we can also use {\it plm}, but with the {\it "pooling"} model:
+
+<<>>=
+pooled<-plm(y~x1, data=panelData, index=c("country","year"), model="pooling")
+yhat<-hat(panelData$x1,panelData$country)
+library(ggplot2)
+panelData$yhat<-yhat
+p<-ggplot(panelData)
+p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_abline(intercept=pooled$coefficients[1], slope=pooled$coefficients[2], colour="red", size=1) 
+p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
+p<- p + ggtitle("Fixed Using the Within Estimator")
+p
+@
+
+\section{Fixed vs Pooling Models}
+
+Given panel data, how can acertain which model is more appropriated: {\it Fixed} or {\it Pooling}? One way is to use the {\it F-test}, as follows:
+
+<<>>=
+library(foreign)
+panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+library(plm)
+model.fixed<-plm(y~x1, data=panelData, index=c("country","year"), model="within")
+model.pooled<-plm(y~x1, data=panelData, index=c("country","year"), model="pooling")
+pFtest(model.fixed,model.pooled)
+@
+ If the p-value is less than $0.05$ then the NULL hypothesis is rejected and the fixed.model is considered more appropriate.
+ 
+ \section{FE Panel Data Generation}
+ 
+ <<>>=
+country<-c("alpha","beta","gamma","delta")
+T<-c(2001,2002,2003,2004,2005)
+panel<-expand.grid(country=country, year=T)
+panel$x<-runif(nrow(panel), 10, 20)
+library(plyr)
+delta<-daply(panel, .(country), function(df){sum(df$x)})
+delta<-delta/sqrt(delta%*%delta)
+alpha<-5
+epsilon<-runif(nrow(panel),-1,1)
+panel$y<-alpha + delta + 2*df$x + epsilon
+@
+
+<<>>=
+head(panel)
+@

@@ -1,0 +1,77 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+\chapter{Exploring Panel Data}
+
+%We can examine the structure of {\it panel data} using the {\it str command},
+\section{Basic Statistics}
+The {\it summary} command provides a brief summary of the statistics of our panel data as seen below.
+<<panelSummary>>=
+library(foreign)
+panel<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+panel$y_bin<-NULL
+head(panel)
+summary(panel)
+@
+
+However, these statistics tell only part of the story, in particular we might be interested in the mean of Y on a per country basis.
+
+That is, 
+<<ep-aggreate>>=
+aggregate(panel$y, by=list(panel$country), mean)
+@
+Or we can find them all at once using the {\it plyr} package.
+<<UsingPlyr>>=
+library(plyr)
+ddply(panel, .(country), function(x) c(meanY=mean(x$y), meanX1=mean(x$x1), meanX2=mean(x$x2), meanX3=mean(x$x3), varY=var(x$y)))
+@
+
+\section{Plotting}
+
+R contains a built in plotting commands {\it Plot}
+<<ep-plot>>=
+plot(y~x1, data=panel, main="y vs x1")
+@
+
+However the package {\it ggplot} provides additional features and so we will be using ggplot.  
+<<>>=
+library(ggplot2)
+ggplot(panel)+geom_point(aes(x=x1,y=y))
+@
+   
+   
+Finer detail may be obtained
+coloring each plot according to the country. 
+<<ep-ggplot2-2>>=
+library(ggplot2)
+ggplot(panel)+geom_point(aes(x=x1,y=y,group=country,colour=country))
+@
+
+
+\section{Plotting Time Series}
+To plot $y$ as a time series, replace the role of $x1$ by $year$ in the above and add lines to join the points between consecutive time intervals for each country. 
+<<pe-ggplot2-3>>=
+library(ggplot2)
+ggplot(panel)+geom_point(aes(x=year,y=y,group=country,colour=country))+geom_line(aes(x=year,y=y,group=country,colour=country))
+@
+
+\section{Heterogeneity Across Countries}
+
+We can demonstate the Heterogeneity across countries using boxplot as follows.
+<<ep-hetero>>=
+p<-ggplot(panel, aes(country,y))
+p<-p + geom_boxplot() 
+p + labs(title = "Heterogeneity Across Countries") 
+@
+
+The parameters of each part of a boxplot are determined by various statistics. The middle bar is the 50\% percentile, the bottom and top of the box are the 25\% and 75\% percentiles, etc.
+
+\section{Heterogeneity Across Years}
+
+We can also observe the Heterogenity accross years with the following stat plot
+<<ep-hetroYr>>=
+p<-ggplot(panel, aes(year,y))
+#p + stat_smooth(geom = "point")+stat_smooth(geom = "errorbar")
+p<-p + geom_point() + stat_smooth(level=.95) 
+p + labs(title ="Heterogeneity Across Years") 
+@
+Here the shade area corresponds to a 95\% confidence level.

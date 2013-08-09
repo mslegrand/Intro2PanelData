@@ -1,0 +1,171 @@
+
+% !Rnw root = panel-data-R-ref.Rnw
+
+\chapter{The General Form of the Linear Model}
+
+%\section{The Linear Model}
+
+Linear modeling assumes a model of the form
+\begin{equation}
+y_{i,t}=\vec \beta^T x_{i,t} + Error_{i,t}
+\end{equation}
+which is traditionally calibrated using linear regression.
+The error term $Error_{i,t}$ is a random term which may be decomposed into three components:  individual specifice effects: $\delta_i$,  period specific effects $\gamma_t$ and  residuals $\epsilon_{i,t}$. The $\delta_i$ accomodates for hetrogenity across individuals, and the $\gamma_t$ accomodates for hetrogenity across time.
+
+% 
+% The defining aspect of these effects are
+% \begin{itemize}
+% \item{E[\delta_i]=0 for all i, t}
+% \end{itemize}
+% {\bf Place some lots of good stuff here}
+
+The general form of linear model for panel data is:
+\tikzstyle{na} = [baseline=-.5ex]
+
+\begin{itemize}
+    \item Explanatory Variable 
+        \tikz[na] \node[coordinate] (n1) {};
+    \item \tikz[na] \node[coordinate] (n0) {}; Dependent Variable
+\end{itemize}
+
+% Below we mix an ordinary equation with TikZ nodes. Note that we have to
+% adjust the baseline of the nodes to get proper alignment with the rest of
+% the equation.
+\begin{equation} \label{Eqn:General.Model}
+        \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t0)
+            {$Y_{i,t}$};
+        }
+     = 
+            \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t0_5)
+            {$\alpha$};
+        } +
+             \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t1)
+            {$ X^T_{i,t}$};
+        } 
+        \tikz[baseline]{
+            \node[fill=green!20,ellipse,anchor=base] (t1_5)
+            {$ \beta$};
+        } 
+        + 
+        \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t2)
+            {$\delta_i$};
+        } +
+        \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t3)
+            {$\gamma_t$};
+        } +
+        \tikz[baseline]{
+            \node[fill=red!20,ellipse,anchor=base] (t4)
+            {$\epsilon_{i,t}$};
+        }
+\end{equation}
+\begin{itemize}
+    \item global constant
+        \tikz[na]\node [coordinate] (n0_5) {};
+    \item explanatory coeffcients
+        \tikz[na]\node [coordinate] (n1_5) {};
+    \item cross sectional effect
+        \tikz[na]\node [coordinate] (n2) {};
+    \item period effect
+        \tikz[na]\node [coordinate] (n3) {};
+    \item residual
+        \tikz[na]\node [coordinate] (n4) {};
+\end{itemize}
+
+% Now it's time to draw some edges between the global nodes. Note that we
+% have to apply the 'overlay' style.
+\begin{tikzpicture}[overlay]
+        \path[->] (n0) edge [bend right] (t0);  
+        \path[->] (n0_5) edge [bend right] (t0_5);
+        \path[->] (n1) edge [bend left] (t1);
+        \path[->] (n1_5) edge [bend right] (t1_5);
+        \path[->] (n2) edge [bend right] (t2);
+        \path[->] (n3) edge [bend right] (t3);
+        \path[->] (n4) edge [out=0, in=-90] (t4);
+\end{tikzpicture}
+
+With the assumptions:
+\begin{itemize}
+  \item The residual $\epsilon_{i,t}$ satisfies $\epsilon_{i,t}\sim IDD(0,\sigma_\epsilon^2)$  
+  \item $\delta_i$ is uncorreltated with $\epsilon_{i,t}$, that is $\rho(\delta_i, \epsilon_{i,t})=0$
+\item $\gamma_i$ is uncorreltated with $\epsilon_{i,t}$, that is $\rho(\gamma_i, \epsilon_{i,t})=0$
+\item $X_{i,t}$ is uncorreltated with $\epsilon_{i,t}$, that is $\rho(X_{i,t}, \epsilon_{i,t})=0$
+\end{itemize}
+
+
+By varying the assumptions on the individual parts, we  obtain  several models, the simplest being the 
+{\it pooled model}, where we assume the cross sectional and period effects to be null. 
+\begin{equation}
+  y_{i,t}= \alpha + x^T_{i,t}\beta + \epsilon_{i,t}
+\end{equation}
+
+By allowing individual cross sectional effects two prominent models can be obtained: the
+{\it Fixed Effects Model}
+and the
+{\it Random Effects Model}
+
+These models are distinguished by whether or not the cross-sectional effects are correlated with the explanatory variables $X_{i,t}$
+See table \ref{Table:FEvsRE} below. The Fixed Effects model and the Random Effects Model are discussed 
+in  chapter~\ref{Chapt:Fixed.Effects.Model} and  chapter~\ref{Chapt:Random.Effects.Model} respecitvely.
+
+%-----------------------------------------------------------------------------
+% \item{\bf Fixed Effects Model}
+% The correlation between $\delta_i$ and $X_{i,j}$ is non-zero.
+% \item{\bf Random Effects Model (Error Components Model)}
+% The correlation between $\delta_i$ and $X_{i,j}$ is zero.
+% \end{itemize}
+
+% \section{The Pooled Model} \label{Sect:Pooled.Model}
+% 
+% \begin{equation}
+%   y_{i,t}= \alpha + x^T_{i,t}\beta + \epsilon_{i,t}
+% \end{equation}
+% This can be solved using ordinary linear regression, as shown in \S~\ref{OLS}
+% 
+% To allow for cross sectional or individual-specific effects,  relax the conditions on the {\it Pooled} model with respect to allow the $\delta_i$ to be non-zero. At this point there two possibilities arize: 
+% \begin{itemize}
+% \item{The correlation between $\delta_i$ and $X_{i,j}$ in non-zero. This is called the {\it Fixed Effects Model}
+% }
+% \item{The correlation between $\delta_i$ and $X_{i,j}$ in zero. This is called the {\it Random Effects Model}
+% }
+% \end{itemize}
+
+%These models are presented in \S~\ref{FEModel} and \S~\ref{REModel}
+%\vfill
+%\pagebreak
+
+%---------------------------------------------------------------------
+% 
+% \section{The Fixed Effects Model} \label{FEModel_S}
+% We provide techniques for finding $\vec \beta$ and $\alpha_i$ in \S~\ref{Fixed Effects Model}
+
+
+
+%-------------------------------------------------------
+
+%\section{The Random Effects Model} \label{REModel}
+
+\begin{table}[ht] \label{Table:FEvsRE}
+\caption{Fixed vs Random Effect} % title of Table
+\centering % used for centering table
+\begin{tabular}{l c c} % centered columns (4 columns)
+\hline\hline %inserts double horizontal lines
+ & Fixed Effects & Random Effects  \\ [0.5ex] % inserts table
+%heading
+\hline % inserts single horizontal line
+& &  \\
+Correlation & $\rho(X_{i,t},\delta_i) \ne 0$ & $\rho(X_{i,t},\delta_i)= 0$ \\
+Form & $y_{i,t}= (\alpha+ \delta_i)+ X_{i,t}^T +\epsilon_{i,t} $ & $y_{i,t}= \alpha+ X_{i,t}^T +( \delta_i+\epsilon_{i,t}) $ \\ % inserting body of the table
+Intercepts & varies across individuals (or time) & Constant  \\
+Error Variances & Constant & Varies across individuals  \\
+Slope & constant & constant  \\
+Test & Incremental F & Breusch-Pagen LM Test  \\
+Estimator & LSDV or Within & GLS, FGLS  \\ [1ex] % [1ex] adds vertical space
+\hline %inserts single line
+\end{tabular}
+\label{table:FixedvsRandom} % is used to refer this table in the text
+\end{table}

@@ -1,0 +1,244 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+
+\chapter{The Random Effects Model} \label{Chapt:Random.Effects.Model}
+
+\section{The RE Model}
+If we alter the conditions on the {\it Fixed Effects} model to allow for a random $\delta_i$ that is uncorrelated with $X_{i,t}$, then since 
+ $\delta_i$ 
+ can be combined with the $\epsilon_{i,t}$ term to producing random effects with differing variances: That is 
+ setting 
+ $\zeta_{i,t}= \delta_i + \epsilon_{i,t}$, 
+  we have the 
+ {\it Random Effects Model} who has the form of:
+
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{equation} \label{Eqn:Random.Effects.Model}
+        \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t0)
+            {$Y_{i,t}$};
+        }
+     = 
+            \tikz[baseline]{
+            \node[fill=red!20, ellipse,anchor=base] (t0_5)
+            {$\alpha$};
+        } +
+             \tikz[baseline]{
+            \node[fill=blue!20,anchor=base] (t1)
+            {$ X^T_{i,t}$};
+        } 
+        \tikz[baseline]{
+            \node[fill=green!20,ellipse,anchor=base] (t1_5)
+            {$ \beta$};
+        } 
+        + 
+        \tikz[baseline]{
+            \node[fill=red!20,ellipse,anchor=base] (t4)
+            {$\zeta_{i,t}$};
+        }
+\end{equation}
+\begin{itemize}
+    \item  global constant 
+        \tikz[na]\node [coordinate] (n0_5) {};
+    \item explanatory coeffcients
+        \tikz[na]\node [coordinate] (n1_5) {};
+    \item random effects component ($\delta_i + \epsilon_{i,t}$)
+        \tikz[na]\node [coordinate] (n4) {};
+\end{itemize}
+
+
+Here, our assumptions are:
+\begin{itemize}
+  \item The period effect $\gamma_t$ statisfies $\gamma_t=0$ for each t.
+  \item The residual $\epsilon_{i,t}$ satisfies $\epsilon_{i,t}\sim IDD(0,\sigma_\epsilon^2)$  
+  \item $\delta_i$ is uncorrelated with $\epsilon_{i,t}$, that is $\rho(\delta_i, \epsilon_{i,t})=0$
+\item $\delta_i$ is uncorreltated with $X_{i,t}$, that is $\rho(\delta_i, X_{i,t})=0$
+\item $X_{i,t}$ is uncorrelated with $\epsilon_{i,t}$, that is $\rho(X_{i,t}, \epsilon_{i,t})=0$
+\end{itemize}
+
+% Now it's time to draw some edges between the global nodes. Note that we
+% have to apply the 'overlay' style.
+\begin{tikzpicture}[overlay]
+        \path[->] (n0_5) edge [bend right] (t0_5);
+        \path[->] (n1_5) edge [bend right] (t1_5);
+        \path[->] (n4) edge [out=0, in=-90] (t4);
+\end{tikzpicture}
+
+Now since $\rho(\delta_i, X_{i,t})=0$ we have
+ $var(\zeta_{i,t})=var(\delta_i)+var(\epsilon_{i,t})$. Moreover, assuming
+ \begin{itemize}
+ \item $\delta_i \sim IID(0,\sigma_\delta^2)$
+ \item $\epsilon_{i,t} \sim IID(0,\sigma_\epsilon^2)$
+ \end{itemize}
+ the covariance structure for the composite errors $E\left[\zeta_{i,t}\zeta_{j,s}\right]$ becomes
+ \begin{equation}
+ E\left[\zeta_{i,t}\zeta_{j,s}\right]=
+\left( \begin{array}{cccc}
+\sigma_\delta^2 + \sigma_\epsilon^2 & \sigma_\delta^2 & \cdots &\sigma_\delta^2 \\
+\sigma_\delta^2 & \sigma_\delta^2 + \sigma_\epsilon^2 & \cdots &\sigma_\delta^2\\
+\vdots & \vdots & \ddots & \vdots \\
+\sigma_\delta^2&\sigma_\delta^2 & \cdots& \sigma_\delta^2 + \sigma_\epsilon^2
+\end{array} \right)
+ \end{equation}
+ and the variance-covariance matrix for the entire disturbances is given by
+ \begin{equation}
+ \Omega=I_n \otimes \Sigma =
+\left( \begin{array}{cccc}
+\Sigma & 0 & \cdots &0 \\
+0 & \Sigma & \cdots &0\\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \cdots& \Sigma
+\end{array} \right)
+ \end{equation}
+ The {\it Random Effects} model corresponds to a GLS regression model
+\begin{equation}
+\begin{array}{ccc}
+  \vec Y & = & \alpha \iota_{NT} + X^T \beta + \zeta \\
+  var(\zeta) & = & \sigma_\delta^2 ( I_N\otimes J_T) + \sigma_\zeta^2 I_{NT}
+\end{array}
+\end{equation}
+where $\iota_{NT}$ is a vector of lenght $NT$ composed entirely of $1's$. 
+Let $W=c(\iota_{NT}, X^T)$, 
+that is result of concatenating 
+$\iota_{NT}$ with 
+$X^T$.
+Then the problem of finding 
+$\hat \beta$ takes the form of 
+\begin{equation}
+\left(\begin{array}{c} 
+\hat \alpha \\ \hat \beta 
+\end{array} \right)
+=
+\left(
+W^T \hat \Omega W 
+\right)^{-1}
+W^T \hat \Omega^{-1} Y
+\end{equation}
+In practice, $\Omega$ is not known, but must be estimated. Since $\Omega$ is expressed in terms of
+$\sigma_\delta^2$ and $\sigma_\zeta^2$, this may be accomplished by estimation of $\sigma_\delta^2$ and $\sigma_\zeta^2$. There are many ways to estimate these parameters, the estimation methods supported in R are:
+\begin{itemize}
+\item {\bf SWAR} method (the default method) 
+\item {\bf AMEMIYA}  method
+\item {\bf WALHUS}  method
+\item {\bf NERLOVE}  method
+\item {\bf KINLA}  method
+\end{itemize}
+ 
+
+
+
+
+% The above form for this model is deceiving, in that it resemble closely the {\it Fixed Effects} Model. To try to make clear, we go back to the general model \S~\ref{Eqn:General.Model}. For the moment, set $\gamma_t=0$. Then we have:
+
+\vfill
+\pagebreak
+\section{Random Effects Estimation}
+
+In this section we use R to estimate the parameters for a Random Effects Model. 
+We begin by creating some data:
+<<RandomDataGenerate>>=
+outer(LETTERS,letters[1:9],function(x,y){paste(x,y,sep="")})->country
+expand.grid("country"=country,"Year"=2008:2010)->df
+df$x<-runif(nrow(df),1,10)
+alpha<-runif(length(country),0,20)
+names(alpha)<-country
+alpha[df$country]+df$x * 2 + runif(nrow(df),-5,5)->df$y
+write.csv(df,"./Data/random1.csv", row.names=FALSE)
+df<-NULL
+@
+The motivation here is to generate data with many countries having randomly distributed $\delta_i$ that are independent of $X_{i,t}$. Note, we used the {\it outer} function as a cheap device to generate, $26 \times 10=260$, country names, and we use the function {\it expand.grid} to generate all country-year combinations. We constructed this date to satisfy
+\begin{equation}
+y_{i,t}= 10 + 2 * x_{i,t} + (\delta_i + \epsilon_{i,t})
+\end{equation}
+Next we read in the desired panel data and examine the head
+<<RandomDataRead>>=
+random.panel.data<-read.csv("./Data/random1.csv")
+head(random.panel.data)
+@
+And next, we create the {\it Random Model}
+<<RandomModel>>=
+library(plm)
+plm(y~x, data=random.panel.data, effect="individual", model="random", random.method="swar")->random.model
+@
+Finally we inspect the results
+<<RandomModel.Summary>>=
+summary(random.model)
+@
+
+{\bf Note:} The p-value less that .05 means that the all coefficients in the model are non-zero. 
+
+As usual we plot the output, shown in
+
+<<Random.plot>>=
+library(ggplot2)
+random.model$coefficients["x"]->m
+random.model$coefficients["(Intercept)"]->b
+ggplot(random.panel.data)+
+ geom_point(aes(x=x,y=y), shape=1, size=1, color="blue")+
+ geom_abline(intercept=b, slope=m, color="red")                 
+@
+
+\section{Lagrange Multipler Test}
+
+From the looks of the graph, one might wonder if pooling might be the the appropriate model for {\it random.panel.data}
+
+We can test this hypothesis using a {\it Lagrange Multiplier Test}. First we 
+create a Pooling Estimation.
+<<RandomModelPoolEst>>=
+library(plm)
+plm(y~x, data=random.panel.data, effect="individual", model="pooling", )->pooling.model
+@
+Next we performan the {\it Lagrange Multiplier Test}
+<<RandomModel.LMtest>>=
+plmtest(pooling.model)
+@
+And we see that the hypothesis NULL hypothesis is rejected!
+
+\section{Hausman Test}
+At this point, having rejected the {\it Pool Model} one might consider the consider using the {\it Fixed Effects Model}. To distinguish these two choices, we apply the {\it Hausman Test} to the pair of models. In R, this
+can be accomplished as using the {\it phtest} function in {\it plm} package. 
+
+<<HausmanTest>>=
+library(plm)
+random.panel.data<-read.csv("./Data/random1.csv")
+plm(y~x, data=random.panel.data, effect="individual", model="random", )->random.model
+plm(y~x, data=random.panel.data, effect="individual", model="within", )->fixed.model
+phtest(fixed.model, random.model)
+@
+If the resulting {\it p-value} is less that $0.05$ then the {\it Fixed Model} is perfered. In this case we see that the {\it Random Effects} model is the perferred model
+
+However, the {\it phtest} function can generate the models necessary models, providing a simpler way to perform this same test:
+<<HausmanTest2>>=
+library(plm)
+random.panel.data<-read.csv("./Data/random1.csv")
+phtest(y~x, data=random.panel.data)
+@
+
+
+\section{Eliminating Additional Explanatory Variables}
+
+In order to examine the effect of additional variables,  we modify the panel data of the previous example, by adding an independent variable, called {\it z}.
+<<RandomDataRead2>>=
+random.panel.data<-read.csv("./Data/random1.csv")
+modified.panel.data<-data.frame(random.panel.data, z=runif(nrow(random.panel.data),0,20))
+head(modified.panel.data)
+@
+and the perform a {\it random model estimation} on {\it modified.panel.data} with two explanatory variables: {\it x and z}
+<<ModifiedRandomModel>>=
+library(plm)
+plm(y~x+z, data=modified.panel.data, effect="individual", model="random", random.method="swar")->modified.random.model
+@
+Finally we inspect the results
+<<ModifiedRandomModel.Summary>>=
+summary(modified.random.model)
+@
+{\bf Note} For z, the value of 
+$Pr(>|t|)$ exceeding $0.05$ means that z should be eliminated as an explanatory variable.
+
+% cr
+%load data
+% show data
+% run model
+% summary
+% graph
+

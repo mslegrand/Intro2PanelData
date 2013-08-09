@@ -1,0 +1,50 @@
+% !Rnw root = panel-data-R-ref.Rnw
+
+\chapter{Panel Data Basics}
+%In this chapter we discuss a few of the basics about panel data.
+\section{What is Panel Data?}
+Panel Data\footnote{Also known as longitudal data or repeated measures}, is a multi-dimensional data set, 
+consisting of repeated measurements ($\vec X_{i,t}$) of  individuals or countries (i)) spanning over time (t). 
+More precisely, 
+
+\begin{definition}{Panel Data}
+{\it Panel data} is a mapping from a subset of a product space $I \times T$ into another product space $\Pi_1^k M_k$ called the measurements.$I$ is represents the set of individuals (states, or countries) and the T represent observation times. When the domain of the panel data is equal to $I \times T$ we say the panel data is {\it balanced}. Panel data is said to be {\it unbalanced} provided it is not balanced.
+\end{definition}
+
+Thus each panel data measurement consists of K many values associated with an individual and a time t.
+For example consider table~\ref{table1}
+<<results='asis', echo=FALSE>>=
+makePanel(3,4)->panel
+xtable(panel,caption="Panel Data",label="table1")
+@
+
+Here,   each row represents a single obversation together its associated index: $(i,t)=(year,country)$. That is, the observation times appear in the first column, the individuals in the second column.
+Thus  $T=(2010,2011,2012)$, $I=(A,B,C)$, Moreover, the first row is interpreted as $t=2010$, $i=A$, 
+$X_{i,t}=(
+\Sexpr{sprintf("%6.2f",panel$y[1])},
+\Sexpr{sprintf("%6.2f",panel$x1[1])}, 
+\Sexpr{sprintf("%6.2f",panel$x1[2])})
+$
+Since the observation times for each country are the same, this panel is {\it balanced}.
+
+
+
+\section{Panel Data in R}
+Panel data in R is representated as a {\it data.frame} object. A {\it data.frame} object is similar to a matrix having named colums but unlike matrix, the types of columns may differ. Thus one column may be an integer while another may be a string. In R, we can inspect the first 6 lines of our panel (data frame) using the 
+{\it head} command
+<<echo=FALSE>>=
+#makePanel(8,8)->panel
+@
+<<headCommand>>=
+head(panel)
+@
+To inspect the entire panel, issue {\it print(panel)} command.
+<<printPanel>>=
+print(panel)
+@
+<<echo=FALSE>>=
+panel<-NULL
+@
+
+The format we use in R to represent panel data is called the {\it long format}. This format consists one column representing the time, one column representing the individuals, and remaining columns representing the data.
+Thus one row represend a single observation $X_{i,t}$. 

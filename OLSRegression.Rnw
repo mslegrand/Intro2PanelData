@@ -1,0 +1,221 @@
+% !Rnw root = panel-data-R-ref.Rnw
+\appendix{Review of Ordinary Least Square Regression (OLS)}
+\appendixpage
+\addappheadtotoc
+
+
+% \appendix{Ordinary Least Square Regression (OLS)} \label{App:Ordinary.Least.Square.Regression}
+
+
+
+\section{Ordinary Least Square Regression (OLS)}
+R has an extensive {\it Stats} package, containing numerous methods and is well worth exploring. However, our modeling efforts will concentrate on linear models. To better understand these, we begin with  quick review of ordinarly linear regression
+
+The goal in OLS is to find a linear relationship between a dependent variable, 
+$y$ and one or more explanitary variables
+$x$ based upon a collection of observations 
+$\{y_i, \vec{x_i}\}_1^N$, where in general
+$\vec{x} = <x_1, ...x_P>$. 
+The general form of ordinary least squares regression is given by
+\begin{equation}
+y_i = \alpha + \sum_{j=1}^P \vec x_{i,j} \beta_j + \epsilon_i  
+\end{equation}
+\begin{equation}
+y_i = \alpha +\vec x_i^T \vec \beta + \epsilon_i  
+\end{equation}
+Or in matrix form
+\begin{equation}
+\vec y =  M \vec \theta + \vec \epsilon  
+\end{equation}
+where the $i^{th}$ rom of M is given by $\{ x_{i,1}, ... x_{i,P},1\}$ and the vector 
+$\vec \theta$ is given by $\{ 1, ...1, 1\}$ and is of length $P+1$. Here we assume $\epsilon_i$'s are uncorrelated and have mean 0.  
+
+
+\subsection{A Simple Example}
+
+Suppose we have observed the following data
+<<results='asis', echo=FALSE>>=
+df<-data.frame(y=c(1,4,5,7,8),x=c(1,2,3,4,5))
+xtable(df,"Simple Example")
+@
+and we want to represent the relationship between x and y using a single line, say 
+$y=mx+b$. This corresponds to the systems of equations
+\begin{equation}
+\begin{array}{lcl} 
+1 & = & 1m + 1b \\ 
+4 & = & 2m + 1b \\
+5 & = & 3m + 1b \\
+7 & = & 4m + 1b \\
+8 & = & 5m + 1b
+\end{array}
+\end{equation}
+or in matrix notation
+\begin{equation}
+\vec Y = M \vec \theta
+\end{equation}
+where
+\begin{equation}
+\vec Y=\left| \begin{array}{c} 1 \\ 4 \\ 5 \\7 \\8 \end{array} \right|, \ 
+M=
+\left| \begin{array}{cc} 1 & 1\\ 2 & 1\\ 3 & 1 \\4 & 1 \\5 & 1 \end{array} \right|, \ 
+\vec \theta=\left| \begin{array}{c} m \\ b \end{array} \right|
+\end{equation}
+Now obviously this system of equations is inconsistent, so the best we can do is
+to solve for 
+\begin{equation}
+\vec Y=M\vec \theta +\vec \epsilon
+\end{equation}
+with the minimum absolute value of the residual term 
+$\vec \epsilon =\vec Y - M \vec \theta$, ie
+\begin{equation}
+\widehat \theta=argmin_\theta \| \vec Y - M \vec \theta\|
+\end{equation}
+Noting that the $M \widehat \theta$ is the projection of $\vec Y$ onto the column space of $M$, it is clear that $\vec Y-M \widehat \theta$ is orthogonal to the column space of $M$, and hence
+in the null space of $M^T$, i.e.
+\begin{equation}
+M^T \left[\vec Y - M \widehat \theta\right]=\vec 0
+\end{equation} and so we have
+\begin{equation} \label{eqn:normalForm}
+M^T \vec Y = M^T M \widehat \theta
+\end{equation}  
+Equation~\ref{eqn:normalForm} is called the normal equation.
+Assuming $rank\left(M^T M\right)$ is  non-zero, this may be solved as
+\begin{equation} \label{Eqn:ols_soln}
+  \widehat \theta = \left[M^T M\right]^{-1} M^T \vec Y
+\end{equation}. 
+
+\subsubsection{Our Analysis}
+The salient point of our analysis is, we assumed that a linear relationship existed of the form 
+\begin{equation} 
+  \vec Y_i = \alpha + \sum_{j=1}^P X_{i,j} \beta_j +\epsilon_i
+\end{equation}. 
+or coding it into matrix notation
+\begin{equation}
+  Y=M \theta + \vec \epsilon
+\end{equation}, and we produced an algorithm to estimate $\theta$.
+Moreover, we implicitly assumed that the $\epsilon_i$ had 
+
+And 
+
+
+Using the {\it Stats} package we solve by issuing the {\it lm } (linear model) command. 
+<<>>=
+df<-data.frame(y=c(1,4,5,7,8),x=c(1,2,3,4,5))
+fit<-lm(y~x,df)
+summary(fit)
+@
+
+We may plot our {\it fit} as follows
+<<>>=
+fit$coefficients["x"]->m
+fit$coefficients["(Intercept)"]->b
+ggplot(df)+
+ geom_point(aes(x=x,y=y), shape=3, size=10, color="blue")+
+ geom_point(aes(x=x,y=y), shape=1, size=5, color="blue")+
+ geom_abline(intercept=b, slope=m, color="red")                 
+@
+
+\section{Gauss Markov Theorem}
+
+Our least-squares approach to regression analysis is an optimal estimation. To explain this we require a couple of definitions
+
+% of a linear model where the errors have a mean of zero, are uncorrelated, and have equal variances.  We say that it is the best linear unbiased estimator (BLUE) of the coefficients is the least-squares estimator. 
+First we define {\it Linear Estimator}
+
+\begin{definition}{Linear Estimator}
+A {\it Linear Estimator} of $\beta_j$ is a linear combination of the observation $Y_i$, depending on $X_{i,j}$ but not on the unobserved $\beta_j$. that is,
+ $\widehat \beta_j = \sum c_{i,j}Y_i$.
+Thus $\widehat  \beta= C  Y$ for some matrix $C$
+where $C$ depends on $X$.
+\end{definition}
+
+Next we define what we mean by a {\it Best Linear Unbiased Estimator}
+
+\begin{definition}{Best Linear Unbiased Estimator}
+The {\it Best Linear Unbiased Estimate} (BLUE) of a
+parameter $\theta$ based on data Y is
+\begin{itemize}
+  \item{\it Linear in Y} The estimator is of the form $\widehat \theta= B^T \vec Y$.
+  \item{Unbiased} $E\left[ \widehat \theta \right] = \theta $
+  \item{minimal variance} Has the least variance among all unbiased linear estimators
+\end{itemize}
+\end{definition}
+
+
+
+% To be precise:
+% 
+% 
+% 
+%  Suppose we are given  a collection of observations $Y_i$, 
+% $X_{i,j}$ that are assumed to follow the distribution 
+% of the form 
+%  $Y_i = \sum_{j=1}^K X_{i,j}\beta_j + \epsilon_i$ 
+%  where $\epsilon_i$ are random, 
+% $\beta_j$ are fixed unobservered pararmeters, to be estimated. Then 
+
+
+% GDP  series	Q	Gross Domestic Product,  1 Decimal
+% GDPA	series	A	Gross Domestic Product
+% GDPC1	series	Q	Real Gross Domestic Product,  1 Decimal
+% GDPC96	series	Q	Real Gross Domestic Product,  3 Decimal
+% GDPCA	series	A	Real Gross Domestic Product
+% GDPCTPI	series	Q	Gross Domestic Product: Chain-type Price Index
+% GDPDEF	series	Q	Gross Domestic Product: Implicit Price Deflator
+% GDPMC1	series	Q	Real Gross Domestic Product
+% GDPPOT	series	Q	Real Potential Gross Domestic Product
+
+
+
+
+{\bf Theorem: } (Gauss-Markov)
+Suppose $\vec Y = M \vec \theta + \epsilon$, 
+where $E \left( \epsilon \right) = \vec 0$ and 
+$Var\left( \epsilon \right) = \sigma^2 \vec \iota$.
+The the least square estimate
+$\widehat \theta = \left(  M^T X \right)^{-1} \vec Y$ is 
+the 
+{\it Best Linear Unbiased Estimate} of 
+$\theta$.
+
+{\bf Proof:}
+First note that $\widehat \theta$ is a linear combination of $\vec Y$ by eqn~\ref{Eqn:ols_soln}. 
+
+Second note that
+$E[\widehat \theta - \theta]=E\left[ \left[M^T M\right]^{-1} M^T \vec Y - \theta \right] = \left[M^T M\right]^{-1} M^T E\left[ \vec Y\right] - \theta$ 
+and since $ E[Y] = E[M \theta + \epsilon]= M \theta + E[\epsilon] = M \theta $. Thus
+$E[\widehat \theta - \theta] = \left[M^T M\right]^{-1} M^T  M \theta - \theta = 0$. Thus OLS is unbiased. 
+
+It remains to show that OLS is optimal in the sense of having the least variance among all linear unbiased estimators. To this end, let $\widetilde \theta$  be another linear unbiased estimator. To show $var(\widetilde \theta) \ge \widehat \theta$. Since $\widetilde \theta$ is a linear estimator, it is of the form $\widetilde \theta = \sum  c_i Y_i= C Y$.
+Now $\widetilde \theta - \widehat \theta = \left[ CY - (M^TM)^{-1}M^T Y\right] = \left[ C - (M^TM)^{-1}M^T \right]Y$.
+Set $D=  C - (M^TM)^{-1}M^T$, so $\widetilde \theta = CY = \left[(M^TM)^{-1}M^T +D \right]Y$
+That is, $\widetilde \theta = \left[(M^TM)^{-1}M^T +D \right](M \theta + \epsilon)$. 
+Taking the expectation
+and noting that  $E[\epsilon]=0$ we have  
+$E[\widetilde \theta]= \left[(M^TM)^{-1}M^T +D \right] M \theta$.
+But $\widetilde \theta$ is unbiased, so 
+$\left[(M^TM)^{-1}M^T +D \right]M \theta=\theta$, i.e.
+$(I+DM)\theta = \theta$. Thus $DM \theta =0$ and 
+since $D$ does not depend on $\theta$, $DM =0$. Now computing the $var(\widetilde \theta)$ we get
+$var(\widetilde \theta)=var(CY(CY)^T)=var(CYY^TC^T)=\sigma^2var(CC^T)$. Now
+$CC^T=\left[ (M^TM)^{-1}M^T +D \right]
+\left[ (M^TM)^{-1}M^T +D \right]$. Multiplying out and dropping term containing $DM$ we have
+$CC^T= (M^TM)^{-1} + DD^T$, so $var(\widetilde \theta )= \sigma^2 (M^TM)^{-1} + \sigma^2 DD^T$.
+ But $\sigma^2(M^TM)^{-1} =var(\widehat \beta)$ and $DD^T$ is positive semidefinite, so
+ $var(\widehat \theta) \leq var(\widetilde \theta)$
+ $\blacksquare$
+% 
+
+
+% \section{Generalized Least Square Regression}
+% 
+% In the previous section we  considered the problem of finding the $widehat \beta$ that minimized the $\| \vec \epsilon \|^2$ for the problem
+% \begin{equation}
+% \vec y =  M \vec \theta + \vec \epsilon  
+% \end{equation}
+% In this section we generalize this to  finding the $widehat \beta$ that minimized the $\| \vec \epsilon \|^2$ for the problem
+% \begin{equation}
+% \vec y =  M \vec \theta + S \vec \epsilon  
+% \end{equation}
+
+
