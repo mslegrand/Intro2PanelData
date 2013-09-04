@@ -42,15 +42,15 @@ For greater detail issue the commands {\it help(read.table)} and {\it help(write
   For example, we can load stata files as follows:
 <<label=stata,tidy.opts=list(width.cutoff=60, keep.blank.line=FALSE)>>=
   library(foreign)
-  paneldata<-read.dta("http://dss.princeton.edu/training/Panel101.dta")
-  head(paneldata)
+  panelData<-read.dta("./Data/sample1.dta") 
+  head(panelData)
 @
 First the package foreign is imported using {\it library(foreign)} command. Then the panel is read in using the {\it read.dta} command. Finally we display the first 6 lines of the panel data using the {\it head(Panel)} command. To write back the stata file, we use the {\it write.dta} command. For more information, type {\it help(package=foreign)}
 
 \section{Reading EViews wf1 files}
  Similarly eviews files can be loaded, but using a different package, {\it hexView}. 
  For example:
-<<label=eviews>>=
+<<label=eviews, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=50)  >>=
   library(hexView)
   #download from "http://www.principlesofeconometrics.com/eviews/bond.wf1")
   Panel<-readEViews("./Data/nls_panel.wf1")
@@ -117,7 +117,8 @@ print(panelClean2)
 @
 
 \section{Panel Data Simultions}
-Sometimes it is useful to generate some artificial panel data, to test our analysis algorithms. We can easily generate panel data in R using the built random number generators and a wonderful little function called {\it expand.grid}.
+
+Sometimes it is useful to generate some artificial panel data, called synthetic data,  to test our analysis algorithms. We can easily generate panel data in R using the built random number generators and a wonderful little function called {\it expand.grid}.
 <<panelGenerate1>>=
 country<-c("alpha","beta","gamma")
 years<-c(2008,2009,2011)
@@ -134,6 +135,13 @@ and can be saved using
 <<>>=
 write.csv(df,"./Data/simulation.csv", row.names=FALSE)
 @
+The approach we take is to use synthetic data for our examples for modeling. This provides two benefits:
+\begin{itemize}
+  \item{$\bullet$} Constructing the data for a specific model can give a better understanding of the model
+  \item{$\bullet$} By specifying the parameters within the construction, we can see how well our estimators perform. 
+\end{itemize}
+For greater detail of how each model may be constructed see Appendix~ref{appendix::Syn}
+
 
 \section{The Shape of Data}
 

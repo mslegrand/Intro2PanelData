@@ -1,7 +1,9 @@
 % !Rnw root = panel-data-R-ref.Rnw
-\appendix{Review of Ordinary Least Square Regression (OLS)}
-\appendixpage
-\addappheadtotoc
+\chapter{Review of Ordinary Least Square Regression (OLS)}
+\label{appendix::OLS}
+
+%\appendixpage
+%\addappheadtotoc
 
 
 % \appendix{Ordinary Least Square Regression (OLS)} \label{App:Ordinary.Least.Square.Regression}
@@ -97,6 +99,8 @@ Moreover, we implicitly assumed that the $\epsilon_i$ had
 
 And 
 
+\subsection{Using lm to perform OLS}
+\label{appendix::OLS-LM}
 
 Using the {\it Stats} package we solve by issuing the {\it lm } (linear model) command. 
 <<>>=

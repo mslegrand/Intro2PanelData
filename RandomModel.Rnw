@@ -135,26 +135,18 @@ $\sigma_\delta^2$ and $\sigma_\zeta^2$, this may be accomplished by estimation o
 \section{Random Effects Estimation}
 
 In this section we use R to estimate the parameters for a Random Effects Model. 
-We begin by creating some data:
-<<RandomDataGenerate>>=
-outer(LETTERS,letters[1:9],function(x,y){paste(x,y,sep="")})->country
-expand.grid("country"=country,"Year"=2008:2010)->df
-df$x<-runif(nrow(df),1,10)
-alpha<-runif(length(country),0,20)
-names(alpha)<-country
-alpha[df$country]+df$x * 2 + runif(nrow(df),-5,5)->df$y
-write.csv(df,"./Data/random1.csv", row.names=FALSE)
-df<-NULL
-@
-The motivation here is to generate data with many countries having randomly distributed $\delta_i$ that are independent of $X_{i,t}$. Note, we used the {\it outer} function as a cheap device to generate, $26 \times 10=260$, country names, and we use the function {\it expand.grid} to generate all country-year combinations. We constructed this date to satisfy
-\begin{equation}
-y_{i,t}= 10 + 2 * x_{i,t} + (\delta_i + \epsilon_{i,t})
-\end{equation}
+We begin by reading in data.\footnote{
+To see how this data was generated see the Appendix~\ref{appendix:Syn:Random.Effects}
+}
+
 Next we read in the desired panel data and examine the head
 <<RandomDataRead>>=
 random.panel.data<-read.csv("./Data/random1.csv")
 head(random.panel.data)
 @
+
+
+
 And next, we create the {\it Random Model}
 <<RandomModel>>=
 library(plm)
@@ -233,7 +225,7 @@ Finally we inspect the results
 summary(modified.random.model)
 @
 {\bf Note} For z, the value of 
-$Pr(>|t|)$ exceeding $0.05$ means that z should be eliminated as an explanatory variable.
+$Pr(>|t|)$ is $0.67$  This exceeds $0.05$ which by conventional wisdom, indicates that z should be eliminated as an explanatory variable.
 
 % cr
 %load data

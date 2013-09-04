@@ -95,12 +95,20 @@
 %\listoftables
 
 <<echo=FALSE>>=
+library(formatR)
 opts_chunk$set(tidy=TRUE)
+#options(width=60)
+options$width=60
+#usage(summary, width=60)
+#options(max.print="70") ## limit number of rows of output
+
 library(xtable)
 library(ggplot2)
+
 makePanel<-function(I,T){
   yr<-rep((2012-I+1):2012,T)
   yt<-rep(1:T,I)
+  set.seed(21)
   x1<-runif(I*T)*100
   x2<-runif(I*T)*200
   countries<-rep(LETTERS[1:I],each=T)
@@ -108,6 +116,29 @@ makePanel<-function(I,T){
   y<-jitter(.2*ind+2*x1-x2+yt*10)
   data.frame(year=yr,country=countries,y=y,x1=x1,x2=x2)
 }
+
+opts_chunk$set(out.truncate=60)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output=function(x, options)
+  {
+    if(options$results !="asis")
+    {
+      # Split string into separate lines.
+      x <-unlist(stringr::str_split(x,"\n"))
+      # Truncate each line to length specified.
+      if(!is.null(m <- options$out.truncate))
+      {
+        len <-nchar(x)
+        x[len>m] <-paste0(substr(x[len>m], 0, m-3),"...")
+      }
+      # Paste lines back together.
+      x <-paste(x, collapse="\n")
+      # Continue with any other output hooks
+    }
+    hook_output(x, options)
+  }
+)
+
 @
 
 % www.macalester.edu/~kaplan/startingwithr/panel-data.pdf
@@ -140,9 +171,21 @@ makePanel<-function(I,T){
 <<PDB, child='./RandomModel.Rnw'>>=
 @
 
+<<PDB, child='./InstrumentVariables.Rnw'>>=
+@
+
 <<PDB, child='./ModelTesting.Rnw'>>=
 @
 
+\appendix
+\appendixpage
+\addappheadtotoc
+\renewcommand{\thesection}{A.\arabic{section}}
+
+<<PDB, child='./SyntheticData.Rnw'>>=
+@
+
+\renewcommand{\thesection}{B.\arabic{section}}
 
 <<PDB, child='./OLSRegression.Rnw'>>=
 @

@@ -6,8 +6,7 @@
 \section{Basic Statistics}
 The {\it summary} command provides a brief summary of the statistics of our panel data as seen below.
 <<panelSummary>>=
-library(foreign)
-panel<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+panel<-read.csv("./Data/Pool-2way.csv") 
 panel$y_bin<-NULL
 head(panel)
 summary(panel)

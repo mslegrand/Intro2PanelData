@@ -62,9 +62,9 @@ The {\it Between Model} uses just the cross-section variation to estimate the va
          \path[->] (n4) edge [out=0, in=-90] (t4);
 \end{tikzpicture}
 
- {\bf Note:} In this model, t has been "averaged" out. Thus we used $\eta_i$ rather than the usual $\epsilon_{i,t}$. Moreover, if we introduce an individual effect, $\delta_i$, then we are averaging t over 
+ {\bf Note:} In this model, t has been "averaged" out. Thus we used $\eta_i$ rather than the usual $\epsilon_{i,t}$. Moreover, if we introduce an individual effect, $\delta_i$ \footnote{ but keep the temporal effect, $\gamma_t$ equal to zero},  we are then averaging t over 
 \begin{equation}
-Y_{i,t}=\alpha + X^I_{i,t} + \delta_i + \epsilon_{i,t}
+Y_{i,t}=\alpha + X^T_{i,t} \beta + \delta_i + \epsilon_{i,t}
 \end{equation}
 which produces a residual of
 \begin{equation}
@@ -78,10 +78,9 @@ $\delta_i + \bar \epsilon_i$
 \subsection{The Between Estimator}
 To perform {\it between} estimation we use the {\it plm} package, as follows:
 <<>>=
-library(foreign)
-panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+panelData<-read.csv("./Data/Between-1.csv") 
 library(plm)
-fixed.between<-plm(y~x1, data=panelData, index=c("country","year"), model="between")
+fixed.between<-plm(Y~X, data=panelData, index=c("country","year"), model="between")
 summary(fixed.between)
 @
 
@@ -89,11 +88,11 @@ Note there this model has but a single intercept.  Plotting it is simple:
 
 <<>>=
 fixed.between$coefficients["(Intercept)"]->alpha
-fixed.between$coefficients["x1"]->beta
+fixed.between$coefficients["X"]->beta
 
 library(ggplot2)
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
 p<- p + geom_abline(intercept=alpha,slope=beta, size=2, colour="blue") 
 p<- p + ggtitle("Fixed Using the Between Estimator")
 p
@@ -103,14 +102,14 @@ To place the ols on this graph we can also use {\it plm}, but with the {\it "poo
 
 <<fig.cap="Graph with both Between and Pooled", label="GrphBetween">>=
 fixed.between$coefficients["(Intercept)"]->alpha.fixed
-fixed.between$coefficients["x1"]->beta.fixed
-pooled<-plm(y~x1, data=panelData, index=c("country","year"), model="pooling")
+fixed.between$coefficients["X"]->beta.fixed
+pooled<-plm(Y~X, data=panelData, index=c("country","year"), model="pooling")
 pooled$coefficients["(Intercept)"]->alpha.pooled
-pooled$coefficients["x1"]->beta.pooled
+pooled$coefficients["X"]->beta.pooled
 
 library(ggplot2)
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
 p<- p + geom_abline(intercept=alpha.fixed,slope=beta.fixed,  size=2 ,colour="blue") 
 p<- p + geom_abline(intercept=alpha.pooled,slope=beta.pooled, size=1 ,colour="red") 
 p<- p + ggtitle("Comparison of Pooling and Between")

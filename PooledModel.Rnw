@@ -58,19 +58,76 @@ we assume:
 
 
 
-In the preceding example, we did not have a time component, however we can still apply OLS by pooling all the observations together and then perform a least squares regression.  Again, the form for the general equation for pooled panel data becomes
+The {\it pooled model} is formed by pooling all the observations together and then performing an ordinary least squares regression (OLS). See the Appendix~\ref{appendix::OLS} for a discussion on Ordiniary Least Squares Regression.  
+
+Again, the form for the general equation for pooled panel data becomes
 \begin{equation}
 y_{i,t}= \alpha + X^T_{i,t} \vec \beta + \epsilon_{i,t}
 \end{equation}
 
-
-We can solve this in exactly the same way as in the preceding section, or alternatively, we may fit and plot in a single step
+This may easily solved first by reading in the panel data frame:
 <<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
-library(foreign)
-panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta")
-p <- ggplot(data = panelData, aes(x = x1, y = y)) 
+df<-read.csv("./Data/Pooled-1.csv") 
+head(df)
+@
+
+Then, as in Appendix~\ref{appendix::OLS-LM}, we may solve using the {\it lm} command of the {\it stats} package:
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
+fit<-lm(y~x,df)
+summary(fit)
+@
+In this summary, the $\alpha$ value is given on the line beginning with {\it  (Intercept) 
+\Sexpr{ fit$coefficients[1] } 
+}. The value of $\alpha$ is \Sexpr{fit$coefficients[1]}. This value may also be obtained by 
+
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
+fit$coefficients[1]
+@
+
+Similarly the value of $\beta$ is given on the line beginning with {\it  x \Sexpr{fit$coefficients[2] } }
+This value may also be obtained by 
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
+fit$coefficients[2]
+@
+
+<<echo=FALSE>>=
+fit=NULL
+df=NULL
+@
+
+An alternative way to solve this is by using the {\it plm} package as shown below:
+
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=60)>>=
+library(plm)
+df<-read.csv("./Data/Pooled-1.csv") 
+fit<-plm(y~x, data=df, index=c("country","year"), 
+         model="pooling")
+summary(fit)
+@
+
+This may be plotted  by
+<<>>=
+library(ggplot2)
+p <- ggplot(data = df) + geom_point(aes(x = x, y = y))
+p<- p + geom_point(aes(x=x,y=y)) 
+p<- p + geom_abline(intercept=fit$coefficients[1], slope=fit$coefficients[2], size=2, colour="red")
+p<- p + ggtitle("POOLED MODEL PLOTTED WITH GEOM_ABLINE")
+p
+@
+
+<<echo=FALSE>>=
+fit=NULL
+df=NULL
+@
+
+
+ Alternatively, we may fit and plot in a single step
+<<tidy=TRUE, tidy.opts=list(keep.blank.line=FALSE, width.cutoff=30)>>=
+panelData<-read.csv("./Data/Pooled-1.csv") 
+p <- ggplot(data = panelData, aes(x = x, y = y)) 
 p <- p + geom_smooth(method = "lm", se=FALSE, color="red", formula = y ~ x) 
 p <- p + geom_point()
+p<- p + ggtitle("POOLED MODEL PLOTTED WITH GEOM_SMOOTH")
 p
 @
 

@@ -1,8 +1,14 @@
 % !Rnw root = panel-data-R-ref.Rnw
 
 
-\chapter{Fixed Effects Model} \label{Chapt:Fixed.Effects.Model}
+\chapter{Fixed Effects Model} 
+\label{Chapt:Fixed.Effects.Model}
 
+<<echo=FALSE>>=
+df=NULL
+Panel=NULL
+panel=NULL
+@
 In the Fixed Effects Model may be obtained from the general model under the assumptions that $\gamma_t$ is zero and 
 $\delta_i$ is correlated with $X_{i,t}$.
 Setting $\alpha_i=\alpha + \delta_i$,
@@ -54,7 +60,7 @@ We may interpret each $\alpha_i$ as the intercept for that specific individual.
 %Here $\epsilon_{i,t}$ is assumed to be idd
 
 \begin{equation}
-  y_{i,t}= \alpha + x^T_{i,t}\beta + \epsilon_{i,t}
+  y_{i,t}= \alpha_i + x^T_{i,t}\beta + \epsilon_{i,t}
 \end{equation}
 
 
@@ -134,20 +140,25 @@ p<- p + ggtitle("FIT USING DUMMY VARIABLES") +
 p
 @
 
+<<echo=FALSE>>=
+df=NULL
+yhat=NULL
+fixed.dum=NULL
+@
+
 \subsection{Using Factors as Dummy variables}
-In practice, the dummary variables need not be insert, since we can use the country names as factors. We illustrate this in the following
+In practice, the dummary variables need not be insert, since we can use the country names as factors. We illustrate this in the following example:
 
-
-we use the previous panel data, {\it panel}. This process for the panel data {\it panel} is implemented as follows:
 <<fe-fit1>>=
-fixed.dum <-lm(y ~ x1 + factor(country) -1, data=panel)
+panel<-read.csv("./Data/FE-1.csv") 
+fixed.dum <-lm(y ~ x + factor(country) -1, data=panel)
 summary(fixed.dum)
 @
 
 
 To compare to the pooled ols we issue the command
 <<>>=
-ols <-lm(y ~ x1, data=panel)
+ols <-lm(y ~ x, data=panel)
 @
 and then plot using 
 <<>>=
@@ -155,9 +166,9 @@ yhat<-fixed.dum$fitted
 library(ggplot2)
 #plot fitted dummy
 p<-ggplot(panel)
-p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
+p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
 p<- p + geom_abline(intercept=ols$coefficients[1], slope=ols$coefficients[2], colour="red", size=2) 
-p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
+p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
 p<- p + ggtitle("Fit using Dummy Variables")
 p
 @
@@ -166,9 +177,9 @@ Alternatively, we can show each in a seperate graph as follows:
 <<>>=
 panel$yhat<-yhat
 p <- ggplot(panel)
-p <- p + geom_point(aes(x=x1,y=y,group=country,colour=country) )
+p <- p + geom_point(aes(x=x,y=y,group=country,colour=country) )
 p <- p + geom_abline(intercept=ols$coefficients[1], slope=ols$coefficients[2], colour="red") 
-p <- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country))
+p <- p + geom_line(aes(x=x,y=yhat,group=country,colour=country))
 p <- p + ggtitle("Fit using Dummy Variables")
 p <- p + facet_wrap(~country)
 p
@@ -193,13 +204,18 @@ $\bar \epsilon_i =\frac{1}{T}\sum_t \epsilon_{i,t}$.
 The within estimator is ordinarly least squares estimation applied to equation~\ref{eqn:withinEst}
 
 
+<<echo=FALSE>>=
+df=NULL
+yhat=NULL
+fixed.dum=NULL
+panel=NULL
+@
 
 To perform within estimation we use the {\it plm} package, as follows:
 <<out.width='.8\\textwidth'>>=
-library(foreign)
-panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+panelData<-read.csv("./Data/FE-1.csv") 
 library(plm)
-fixed.within<-plm(y~x1, data=panelData, index=c("country","year"), model="within")
+fixed.within<-plm(y~x, data=panelData, index=c("country","year"), model="within")
 summary(fixed.within)
 @
 
@@ -218,12 +234,12 @@ hat<-function(x,i){
 @
 Then we apply hat to get yhat and proceed as before.
 <<>>=
-yhat<-hat(panelData$x1,panelData$country)
+yhat<-hat(panelData$x,panelData$country)
 library(ggplot2)
 panelData$yhat<-yhat
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
-p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
+p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
+p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
 p<- p + ggtitle("Fixed Using the Within Estimator")
 p
 @
@@ -231,15 +247,16 @@ p
 To place the ols on this graph we can also use {\it plm}, but with the {\it "pooling"} model:
 
 <<>>=
-pooled<-plm(y~x1, data=panelData, index=c("country","year"), model="pooling")
-yhat<-hat(panelData$x1,panelData$country)
+pooled<-plm(y~x, data=panelData, index=c("country","year"), model="pooling")
+yhat<-hat(panelData$x,panelData$country)
 library(ggplot2)
 panelData$yhat<-yhat
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=x1,y=y,group=country,colour=country) ) 
-p<- p + geom_abline(intercept=pooled$coefficients[1], slope=pooled$coefficients[2], colour="red", size=1) 
-p<- p + geom_line(aes(x=x1,y=yhat,group=country,colour=country)) 
-p<- p + ggtitle("Fixed Using the Within Estimator")
+p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
+p<- p + geom_abline(intercept=pooled$coefficients[1], slope=pooled$coefficients[2], colour="red", 
+        size=1) 
+p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
+p<- p + ggtitle("Fixed Using the Within Estimator\n(do")
 p
 @
 
@@ -248,30 +265,11 @@ p
 Given panel data, how can acertain which model is more appropriated: {\it Fixed} or {\it Pooling}? One way is to use the {\it F-test}, as follows:
 
 <<>>=
-library(foreign)
-panelData<-read.dta("http://dss.princeton.edu/training/Panel101.dta") 
+panelData<-read.csv("./Data/FE-1.csv") 
 library(plm)
-model.fixed<-plm(y~x1, data=panelData, index=c("country","year"), model="within")
-model.pooled<-plm(y~x1, data=panelData, index=c("country","year"), model="pooling")
+model.fixed<-plm(y~x, data=panelData, index=c("country","year"), model="within")
+model.pooled<-plm(y~x, data=panelData, index=c("country","year"), model="pooling")
 pFtest(model.fixed,model.pooled)
 @
  If the p-value is less than $0.05$ then the NULL hypothesis is rejected and the fixed.model is considered more appropriate.
  
- \section{FE Panel Data Generation}
- 
- <<>>=
-country<-c("alpha","beta","gamma","delta")
-T<-c(2001,2002,2003,2004,2005)
-panel<-expand.grid(country=country, year=T)
-panel$x<-runif(nrow(panel), 10, 20)
-library(plyr)
-delta<-daply(panel, .(country), function(df){sum(df$x)})
-delta<-delta/sqrt(delta%*%delta)
-alpha<-5
-epsilon<-runif(nrow(panel),-1,1)
-panel$y<-alpha + delta + 2*df$x + epsilon
-@
-
-<<>>=
-head(panel)
-@

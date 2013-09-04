@@ -2,6 +2,7 @@
 % !Rnw root = panel-data-R-ref.Rnw
 
 \chapter{The General Form of the Linear Model}
+\label{Chapt:GeneralForm}
 
 %\section{The Linear Model}
 
@@ -96,7 +97,11 @@ With the assumptions:
 \item $X_{i,t}$ is uncorreltated with $\epsilon_{i,t}$, that is $\rho(X_{i,t}, \epsilon_{i,t})=0$
 \end{itemize}
 
+\begin{definition}{Exogenous}
+The error term $X_{i,t}$ is said to be {\it exogenous} provided it is uncorreltated with $\epsilon_{i,t}$ , that is $\rho(X_{i,t}, \epsilon_{i,t})=0$.
+\end{definition}
 
+Our study will begin by assuming exongenity of our linear models. We will relax this condition in chapter~\ref{Chapt::IV}
 By varying the assumptions on the individual parts, we  obtain  several models, the simplest being the 
 {\it pooled model}, where we assume the cross sectional and period effects to be null. 
 \begin{equation}
@@ -169,3 +174,6 @@ Estimator & LSDV or Within & GLS, FGLS  \\ [1ex] % [1ex] adds vertical space
 \end{tabular}
 \label{table:FixedvsRandom} % is used to refer this table in the text
 \end{table}
+
+
+%One additional note, panel data can be dependent on the
