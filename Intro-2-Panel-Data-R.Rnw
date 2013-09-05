@@ -98,7 +98,6 @@
 library(formatR)
 opts_chunk$set(tidy=TRUE)
 #options(width=60)
-options$width=60
 #usage(summary, width=60)
 #options(max.print="70") ## limit number of rows of output
 
