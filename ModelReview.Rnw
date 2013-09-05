@@ -101,7 +101,7 @@ With the assumptions:
 The error term $X_{i,t}$ is said to be {\it exogenous} provided it is uncorreltated with $\epsilon_{i,t}$ , that is $\rho(X_{i,t}, \epsilon_{i,t})=0$.
 \end{definition}
 
-Our study will begin by assuming exongenity of our linear models. We will relax this condition in chapter~\ref{Chapt::IV}
+Our study will begin by assuming exongenity of our linear models. We will relax this condition in chapter~\ref{Chapt:IV}
 By varying the assumptions on the individual parts, we  obtain  several models, the simplest being the 
 {\it pooled model}, where we assume the cross sectional and period effects to be null. 
 \begin{equation}

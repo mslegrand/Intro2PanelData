@@ -135,7 +135,7 @@ library(ggplot2)
 p<-ggplot(df)
 p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
 p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
-p<- p + ggtitle("FIT USING DUMMY VARIABLES") +
+p<- p + ggtitle("FE USING DUMMY VARIABLES") +
   theme(plot.title = element_text(lineheight=.8, face="bold", family="Times"))
 p
 @
@@ -180,7 +180,7 @@ p <- ggplot(panel)
 p <- p + geom_point(aes(x=x,y=y,group=country,colour=country) )
 p <- p + geom_abline(intercept=ols$coefficients[1], slope=ols$coefficients[2], colour="red") 
 p <- p + geom_line(aes(x=x,y=yhat,group=country,colour=country))
-p <- p + ggtitle("Fit using Dummy Variables")
+p <- p + ggtitle("Using Dummy Variables (LSDV)")
 p <- p + facet_wrap(~country)
 p
 @
@@ -240,7 +240,7 @@ panelData$yhat<-yhat
 p<-ggplot(panelData)
 p<- p + geom_point(aes(x=x,y=y,group=country,colour=country) ) 
 p<- p + geom_line(aes(x=x,y=yhat,group=country,colour=country)) 
-p<- p + ggtitle("Fixed Using the Within Estimator")
+p<- p + ggtitle(" Using the Within Estimator (FE)")
 p
 @
 

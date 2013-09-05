@@ -64,86 +64,98 @@ write.csv(panel,"./Data/Pool-2way.csv", row.names=FALSE)
 \section{Between Models}
 \label{appendix::Syn::Between}
 
-In this section our goal is to create synthetic data for a typical between model:
-\begin{equation}
-\bar Y_{i,*}=\alpha + \bar X_{i,*} \beta + \eta_i
-\end{equation}
-where $\bar X$ and $\bar Y$ are time average values of $X$ and $Y$. That is,
-$\bar X_{i,*} = \frac{1}{T} \sum_i X_{i,t}$ and 
-$\bar Y_{i,*} = \frac{1}{T} \sum_i Y_{i,t}$ . 
-% 
-% The essential ingredient is that $\bar X_{i,*}$ should be uncorrelated with $\eta_i$. To this end, we
-% begin by randomly picking $\bar X_{i,*}$, and $\eta_i$\footnote{Here, we implicitly assume that our random number generators
-% will produce independent random sequences}, and from these construct $X_i,t$ and $Y_{i,t}$ values.}
 
-We construct our model with the folowing 
-Data Specifications:
- \begin{itemize}
-\item{
-  260 countries, denoted by the  capital letters followed by a digit. }
-\item{
-  Assume 5 annual observations between
-  the years 2001 and 2005.
-}
-\item{
-  One explanatory, $X$ and one dependent variable $Y$. 
-}
-\item{
-  Set $\alpha=60$
-}
-\item{
-  Set $\beta=2$ 
-}
-\item{
-  For each i,
-  pick $\bar X_{i,*}$ randomly from the interval between $\left[ 100,200 \right]$ using a uniform random distribution.
-}
-\item{
-  For each i, 
-  Pick $\eta_i$ randomly from the normal  distribution with $\sigma=50$.
-}
-\item{
-  For each i,t
-  Pick $z_{i,t}$ from normal distribution with $\sigma=20$
-}
-\item{
-  For each i,t,
-  set $x_{i,t}=z_{i,t} + \bar X_{i,*}$, thus making $E_t(x_{i,t}) \rightarrow X_{i,*}$
-}
-\item{
-  Save the result as a csv file
-  in the subdirectory {\it "Data"} 
-  with filename of {\it "Betweeen-1.csv"}.
-}
- \end{itemize}
+
+In this section we create a particulaly simple model which demonstrates in a very unambigous fashion
+the distinction between the {\it Pooling Model} and the {\it Between Model}.
 
 
 <<genBetweenModel>>=
-set.seed(512)
-alpha=60
-beta=2
-apply(expand.grid(LETTERS[1:2],0:2),1,paste,collapse="")->countries
-
-I<-length(countries)
-X.bar<-runif(I,100,200)
-eta<-rnorm(I, 50)
-names(eta)<-countries
-years<-2001:2005
-
-#form matrix z,whose indices are country, time, with mean 0 
-t(sapply(countries, function(x){a<-runif(4,-50,50); c(a,-sum(a))}))->z
-x<-z + X.bar #add X.bar to each column of z
-colnames(x)<-years #to make indexing easier
-
-panel<-expand.grid(country=countries, year=years)
-
-#pc<-as.character(panel$country)
-#yr<-as.character(panel$year)
-panel$X<-apply(panel, 1, function(r){x[r['country'], r['year']]})
-panel$Y<-2*panel$X + eta[as.character(panel$country)]
-write.csv(panel,"./Data/Between-1.csv", row.names=FALSE)
+#df<-data.frame(country=c(0,0,1,1),year=c(0,1,0,1), X=c(0,2,0,1), Y=c(1,0,1,2))
+df<-data.frame(country=c("a","a","b","b"), year=c(0,1,0,1), X=c(-1,0,0,1), Y=c(0,1,-1,0))
+write.csv(df,"./Data/Between-1.csv", row.names=FALSE)
 @
 
+% In this section our goal is to create synthetic data for a typical between model:
+% \begin{equation}
+% \bar Y_{i,*}=\alpha + \bar X_{i,*} \beta + \eta_i
+% \end{equation}
+% where $\bar X$ and $\bar Y$ are time average values of $X$ and $Y$. That is,
+% $\bar X_{i,*} = \frac{1}{T} \sum_i X_{i,t}$ and 
+% $\bar Y_{i,*} = \frac{1}{T} \sum_i Y_{i,t}$ . 
+% % 
+% % The essential ingredient is that $\bar X_{i,*}$ should be uncorrelated with $\eta_i$. To this end, we
+% % begin by randomly picking $\bar X_{i,*}$, and $\eta_i$\footnote{Here, we implicitly assume that our random number generators
+% % will produce independent random sequences}, and from these construct $X_i,t$ and $Y_{i,t}$ values.}
+% 
+% We construct our model with the folowing 
+% Data Specifications:
+%  \begin{itemize}
+% \item{
+%   260 countries, denoted by the  capital letters followed by a digit. }
+% \item{
+%   Assume 5 annual observations between
+%   the years 2001 and 2005.
+% }
+% \item{
+%   One explanatory, $X$ and one dependent variable $Y$. 
+% }
+% \item{
+%   Set $\alpha=60$
+% }
+% \item{
+%   Set $\beta=2$ 
+% }
+% \item{
+%   For each i,
+%   pick $\bar X_{i,*}$ randomly from the interval between $\left[ 100,200 \right]$ using a uniform random distribution.
+% }
+% \item{
+%   For each i, 
+%   Pick $\eta_i$ randomly from the normal  distribution with $\sigma=50$.
+% }
+% \item{
+%   For each i,t
+%   Pick $z_{i,t}$ from normal distribution with $\sigma=20$
+% }
+% \item{
+%   For each i,t,
+%   set $x_{i,t}=z_{i,t} + \bar X_{i,*}$, thus making $E_t(x_{i,t}) \rightarrow X_{i,*}$
+% }
+% \item{
+%   Save the result as a csv file
+%   in the subdirectory {\it "Data"} 
+%   with filename of {\it "Betweeen-1.csv"}.
+% }
+%  \end{itemize}
+% 
+% 
+% <<genBetweenModel>>=
+% set.seed(512)
+% alpha=60
+% beta=2
+% apply(expand.grid(LETTERS[1:2],0:2),1,paste,collapse="")->countries
+% 
+% I<-length(countries)
+% X.bar<-runif(I,100,200)
+% eta<-rnorm(I, 50)
+% names(eta)<-countries
+% years<-2001:2005
+% 
+% #form matrix z,whose indices are country, time, with mean 0 
+% t(sapply(countries, function(x){a<-runif(4,-50,50); c(a,-sum(a))}))->z
+% x<-z + X.bar #add X.bar to each column of z
+% colnames(x)<-years #to make indexing easier
+% 
+% panel<-expand.grid(country=countries, year=years)
+% 
+% #pc<-as.character(panel$country)
+% #yr<-as.character(panel$year)
+% panel$X<-apply(panel, 1, function(r){x[r['country'], r['year']]})
+% panel$Y<-2*panel$X + eta[as.character(panel$country)]
+% write.csv(panel,"./Data/Between-1.csv", row.names=FALSE)
+% @
+% 
 
 \section{Fixed Effects Model}
  %\section{FE Panel Data Generation}
@@ -202,7 +214,7 @@ y_{i,t}= 10 + 2 * x_{i,t} + (\delta_i + \epsilon_{i,t})
 \end{equation}
 
 \section{Instrument Variables Model}
-\label{appendix:Syn:IV}
+\label{appendix::Syn::IV}
 
 
 To generate appropriate synthetic data for an example of analysis using {\it instrument variables}  we require $X$ to be correlated with $\epsilon$ and an {\it instrumnet variable}, $Z$ which is correlated with $X$. 

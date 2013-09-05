@@ -75,6 +75,29 @@ Hence, the {\it between} estimator is
 consistent if the regressors $\bar X_i$ are independent of the composite error
 $\delta_i + \bar \epsilon_i$
 
+The essential differnce between the {\it Pooling Model} the {\it Between Model} is what error terms are to be minimized. 
+The {\it Pooling Model} minimizes $\sum_i \sum_t \left[ \epsilon_{i,t} \right]^2$ while the 
+{\it Between Model} minimizes $\sum_i \left[ \sum_t \epsilon_{i,t} \right]^2$.
+This difference is easily seen by considering the following data
+
+<<results='asis', echo=FALSE>>=
+panel<-read.csv("./Data/Between-1.csv") 
+xtable(panel,caption="A Simple Between Model Example",label="table.Between")
+panel=NULL
+@
+
+This data forms a diamond, with data points for individual $a$in the upper left and data points for $b$ in the lower right. Moreover, we see 
+$(\bar X_{a,*}, \bar Y_{a,*}) =( \frac{1}{2}, \frac{1}{2} )$ 
+and 
+ $(\bar X_{a,*}, \bar Y_{a,*}) =( \frac{1}{2}, -\frac{1}{2} )$, so that the {\it Between Model) \footnote{least square fit to these} becomes
+$Y=0-1\times X$. But the {\it Pooling Model} is $Y=0 + 0 \times X$
+\footnote{ The least square fit over all points $(-1,0)$, $(0,1)$, $(0,-1)$, $(1,0)$ }
+In the next section we compute and plot these results using R.
+
+%\subsection{How the Between Model Differs from the Pooling Model}
+
+
+
 \subsection{The Between Estimator}
 To perform {\it between} estimation we use the {\it plm} package, as follows:
 <<>>=
@@ -92,9 +115,9 @@ between$coefficients["X"]->beta
 
 library(ggplot2)
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
+p<- p + geom_point(aes(x=X,y=Y, group=country, colour=country), size=4 ) 
 p<- p + geom_abline(intercept=alpha,slope=beta, size=2, colour="blue") 
-p<- p + ggtitle("fit Using the Between Estimator")
+p<- p + ggtitle("Using the Between Estimator")
 p
 @
 
@@ -109,9 +132,11 @@ pooled$coefficients["X"]->beta.pooled
 
 library(ggplot2)
 p<-ggplot(panelData)
-p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
+p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country), size=4 ) 
 p<- p + geom_abline(intercept=alpha.between,slope=beta.between,  size=2 ,colour="blue") 
 p<- p + geom_abline(intercept=alpha.pooled,slope=beta.pooled, size=1 ,colour="red") 
-p<- p + ggtitle("Comparison of Pooling and Between")
+p<- p + geom_text(x=.5, y=.1, label="Pooled", color="red")
+p<- p + geom_text(x=.6, y=-.45, label="Between", color="blue", angle="-50")
+p<- p + ggtitle("Comparison of Pooling and Between Models")
 p
 @
