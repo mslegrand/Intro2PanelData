@@ -80,29 +80,29 @@ To perform {\it between} estimation we use the {\it plm} package, as follows:
 <<>>=
 panelData<-read.csv("./Data/Between-1.csv") 
 library(plm)
-fixed.between<-plm(Y~X, data=panelData, index=c("country","year"), model="between")
-summary(fixed.between)
+between<-plm(Y~X, data=panelData, index=c("country","year"), model="between")
+summary(between)
 @
 
 Note there this model has but a single intercept.  Plotting it is simple: 
 
 <<>>=
-fixed.between$coefficients["(Intercept)"]->alpha
-fixed.between$coefficients["X"]->beta
+between$coefficients["(Intercept)"]->alpha
+between$coefficients["X"]->beta
 
 library(ggplot2)
 p<-ggplot(panelData)
 p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
 p<- p + geom_abline(intercept=alpha,slope=beta, size=2, colour="blue") 
-p<- p + ggtitle("Fixed Using the Between Estimator")
+p<- p + ggtitle("fit Using the Between Estimator")
 p
 @
 
 To place the ols on this graph we can also use {\it plm}, but with the {\it "pooling"} model:
 
 <<fig.cap="Graph with both Between and Pooled", label="GrphBetween">>=
-fixed.between$coefficients["(Intercept)"]->alpha.fixed
-fixed.between$coefficients["X"]->beta.fixed
+between$coefficients["(Intercept)"]->alpha.between
+between$coefficients["X"]->beta.between
 pooled<-plm(Y~X, data=panelData, index=c("country","year"), model="pooling")
 pooled$coefficients["(Intercept)"]->alpha.pooled
 pooled$coefficients["X"]->beta.pooled
@@ -110,7 +110,7 @@ pooled$coefficients["X"]->beta.pooled
 library(ggplot2)
 p<-ggplot(panelData)
 p<- p + geom_point(aes(x=X,y=Y,group=country,colour=country) ) 
-p<- p + geom_abline(intercept=alpha.fixed,slope=beta.fixed,  size=2 ,colour="blue") 
+p<- p + geom_abline(intercept=alpha.between,slope=beta.between,  size=2 ,colour="blue") 
 p<- p + geom_abline(intercept=alpha.pooled,slope=beta.pooled, size=1 ,colour="red") 
 p<- p + ggtitle("Comparison of Pooling and Between")
 p

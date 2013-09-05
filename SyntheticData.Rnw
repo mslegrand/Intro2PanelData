@@ -1,0 +1,235 @@
+% !Rnw root = panel-data-R-ref.Rnw
+\chapter{Synthetic Data Generation}
+\label{appendix::Synthetic}
+
+\section{Pooled Models}
+\label{appendix::Syn::1-way-Pool}
+
+\subsection{One-Way Pooled Model}
+In this section our goal is to create synthetic data for a typical pooled model:
+\begin{equation}
+y_{i,t}= \alpha + X^T_{i,t} \vec \beta + \epsilon_{i,t}
+\end{equation}
+
+Data Specifications:
+\begin{itemize}
+\item{
+Seven countries, denoted by the first seven capital letters. }
+\item{
+Assume 10 annual observations between
+the years 2001 and 2010.}
+\item{
+One explanatory, $X$ and one dependent variable $Y$. }
+\item{
+Set $\alpha=60$}
+\item{
+Set $\beta=2$ }
+\item{
+Set the standard deviation of $\epsilon$ equal to $40$ 
+($\sigma_\epsilon=40$). }
+\item{randomly from the interval between $\left[ 50,100 \right]$ using a uniform random distribution.}
+\item{
+Save the result as a csv file
+in the subdirectory {\it "Data"} 
+with filename of {\it "Pooled-1.csv"}.}
+\end{itemize}
+
+
+<<genPooledModel>>=
+set.seed(273)
+country<-LETTERS[1:7]
+years<-2001:2010
+panel<-expand.grid(country=country, year=years)
+n<-nrow(panel)
+panel$x<-runif(n, 50,100)
+panel$y<-panel$x*2+rnorm(n,mean=0,sd=50)
+write.csv(panel,"./Data/Pooled-1.csv", row.names=FALSE)
+@
+
+\subsection{Two-way Pooled Model}
+<<genPooled2WayModel>>=
+set.seed(273)
+country<-LETTERS[1:7]
+years<-2001:2010
+panel<-expand.grid(country=country, year=years)
+n<-nrow(panel)
+panel$x1<-runif(n, 50,100)
+panel$x2<-runif(n, 50,100)
+panel$x3<-runif(n, 50,100)
+panel$y<-panel$x1*2+(panel$year-2000)*.5 + rnorm(n,mean=0,sd=3)
+write.csv(panel,"./Data/Pool-2way.csv", row.names=FALSE)
+@
+
+
+\section{Between Models}
+\label{appendix::Syn::Between}
+
+In this section our goal is to create synthetic data for a typical between model:
+\begin{equation}
+\bar Y_{i,*}=\alpha + \bar X_{i,*} \beta + \eta_i
+\end{equation}
+where $\bar X$ and $\bar Y$ are time average values of $X$ and $Y$. That is,
+$\bar X_{i,*} = \frac{1}{T} \sum_i X_{i,t}$ and 
+$\bar Y_{i,*} = \frac{1}{T} \sum_i Y_{i,t}$ . 
+% 
+% The essential ingredient is that $\bar X_{i,*}$ should be uncorrelated with $\eta_i$. To this end, we
+% begin by randomly picking $\bar X_{i,*}$, and $\eta_i$\footnote{Here, we implicitly assume that our random number generators
+% will produce independent random sequences}, and from these construct $X_i,t$ and $Y_{i,t}$ values.}
+
+We construct our model with the folowing 
+Data Specifications:
+ \begin{itemize}
+\item{
+  260 countries, denoted by the  capital letters followed by a digit. }
+\item{
+  Assume 5 annual observations between
+  the years 2001 and 2005.
+}
+\item{
+  One explanatory, $X$ and one dependent variable $Y$. 
+}
+\item{
+  Set $\alpha=60$
+}
+\item{
+  Set $\beta=2$ 
+}
+\item{
+  For each i,
+  pick $\bar X_{i,*}$ randomly from the interval between $\left[ 100,200 \right]$ using a uniform random distribution.
+}
+\item{
+  For each i, 
+  Pick $\eta_i$ randomly from the normal  distribution with $\sigma=50$.
+}
+\item{
+  For each i,t
+  Pick $z_{i,t}$ from normal distribution with $\sigma=20$
+}
+\item{
+  For each i,t,
+  set $x_{i,t}=z_{i,t} + \bar X_{i,*}$, thus making $E_t(x_{i,t}) \rightarrow X_{i,*}$
+}
+\item{
+  Save the result as a csv file
+  in the subdirectory {\it "Data"} 
+  with filename of {\it "Betweeen-1.csv"}.
+}
+ \end{itemize}
+
+
+<<genBetweenModel>>=
+set.seed(512)
+alpha=60
+beta=2
+apply(expand.grid(LETTERS[1:2],0:2),1,paste,collapse="")->countries
+
+I<-length(countries)
+X.bar<-runif(I,100,200)
+eta<-rnorm(I, 50)
+names(eta)<-countries
+years<-2001:2005
+
+#form matrix z,whose indices are country, time, with mean 0 
+t(sapply(countries, function(x){a<-runif(4,-50,50); c(a,-sum(a))}))->z
+x<-z + X.bar #add X.bar to each column of z
+colnames(x)<-years #to make indexing easier
+
+panel<-expand.grid(country=countries, year=years)
+
+#pc<-as.character(panel$country)
+#yr<-as.character(panel$year)
+panel$X<-apply(panel, 1, function(r){x[r['country'], r['year']]})
+panel$Y<-2*panel$X + eta[as.character(panel$country)]
+write.csv(panel,"./Data/Between-1.csv", row.names=FALSE)
+@
+
+
+\section{Fixed Effects Model}
+ %\section{FE Panel Data Generation}
+ In this section our goal is to create synthetic data for a Fixed effects model:
+
+\begin{equation}
+  y_{i,t}= \alpha_i + x^T_{i,t}\beta + \epsilon_{i,t}
+\end{equation}
+
+We break $\alpha_i$ into two components:$\alpha$ and $\delta_i$. Since $delta_i$ is
+indexed by country, in the code below we form a array $LDelta$ indexed by countries.
+Although not necessary, we additionaly create a range of valid X values on a per country basis. This example produces a $\beta=2$
+
+
+ <<>>=
+country<-LETTERS[1:8]
+T<-1990:2010
+panel<-expand.grid(country=country, year=T)
+LRange<-list( c(1,4), c(0,3), c(3,5), c(2,7), c(5,9),c(4,8), c(6,9), c(8,10) )
+names(LRange)<-country
+LDelta<-c(16,15,8,11,2,5,3,-1)
+#LDelta<-c(0,0,0,0,0,0,0)
+names(LDelta)<-country
+panel$x<-sapply(panel$country, function(cn){ runif(1,LRange[[cn]][1], LRange[[cn]][2] )} )
+delta<-sapply(panel$country, function(cn)LDelta[cn] )       
+alpha<-5
+beta<-2
+epsilon<-rnorm(nrow(panel),sd=4)
+#epsilon<-0
+panel$y<-alpha + delta + beta*panel$x + epsilon
+#panel$y<-panel$x + epsilon
+write.csv(panel,"./Data/FE-1.csv", row.names=FALSE)
+#panel<-NULL
+@
+
+<<>>=
+head(panel)
+@
+
+\section{Random Effects Model}
+\label{appendix:Syn:Random.Effects}
+
+<<RandomDataGenerate>>=
+outer(LETTERS,letters[1:9],function(x,y){paste(x,y,sep="")})->country
+expand.grid("country"=country,"Year"=2008:2010)->df
+df$x<-runif(nrow(df),1,10)
+alpha<-runif(length(country),0,20)
+names(alpha)<-country
+alpha[df$country]+df$x * 2 + runif(nrow(df),-5,5)->df$y
+write.csv(df,"./Data/Random-1.csv", row.names=FALSE)
+df<-NULL
+@
+The motivation here is to generate data with many countries having randomly distributed $\delta_i$ that are independent of $X_{i,t}$. Note, we used the {\it outer} function as a cheap device to generate, $26 \times 10=260$, country names, and we use the function {\it expand.grid} to generate all country-year combinations. We constructed this date to satisfy
+\begin{equation}
+y_{i,t}= 10 + 2 * x_{i,t} + (\delta_i + \epsilon_{i,t})
+\end{equation}
+
+\section{Instrument Variables Model}
+\label{appendix:Syn:IV}
+
+
+To generate appropriate synthetic data for an example of analysis using {\it instrument variables}  we require $X$ to be correlated with $\epsilon$ and an {\it instrumnet variable}, $Z$ which is correlated with $X$. 
+\begin{center}
+\begin{tikzpicture}
+  \node (X) {$X$};
+  \node (E) [below of=X] {$\epsilon$};
+  \node (Y) [right of=X] {$Y$};
+  \draw[->] (X) to node {} (Y);
+  %\draw[->, dashed] (X) to node [swap] {} (E);
+  \draw[->] (E) to node [swap] {} (Y);
+\end{tikzpicture}
+\end{center}
+
+One way of accomplishing this is to set $X$ to be a linear combination of $\epsilon$ and $Z$ with some additional noise $\eta$ added. That is:
+
+<<>>=
+set.seed(314)
+dates<-seq(as.Date("2000/1/1"), as.Date("2010/1/1"),"months")
+N<-length(dates)
+Z<-runif(N, 0, 100)
+epsilon<-rnorm(N, sd=20)
+eta<-rnorm(N, sd=10)
+X<-Z+2*epsilon+eta
+Y=3*X + epsilon
+df<-data.frame(Date=dates,Y=Y,X=X,Z=Z)
+write.csv(df, "./Data/InstrumentVbl.csv", row.names=FALSE) 
+@
+
+In this case,          
